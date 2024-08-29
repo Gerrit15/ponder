@@ -8,9 +8,15 @@ fn main() {
         INSERT INTO spells VALUES ('Fireball', 3, 'Fire');
     ";
     connection.execute(query).unwrap();
-    let query = "SELECT * FROM spells WHERE level < 1";
+
+    let mut values = vec![];
+    let query = "SELECT * FROM spells WHERE level = 0";
+
     connection.iterate(query, |pairs| {
-        println!("{:?}", pairs);
+        let pair = pairs[0].1.unwrap_or("None");
+        values.push(pair.to_owned());
         true
-    }).unwrap()
+    }).unwrap();
+
+    for i in values {println!("{i}");}
 }
