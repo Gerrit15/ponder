@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 use std::io;
+use std::collections::HashMap;
 fn main() {
     let connection = sqlite::open(":memory:").unwrap();
     let mut setup = "
@@ -37,7 +38,7 @@ fn main() {
 
     let mut path = std::path::PathBuf::new();
     path.push("/home/gerrit/projects/ponder/spells");
-    let mut spells = vec![];
+    let mut spells = HashMap::new();
     match fs::read_dir(path) {
         Ok(entries) => {
             let x = entries.map(|res| res.map(|e| e.path())).collect::<Result<Vec<_>, io::Error>>();
@@ -52,7 +53,7 @@ fn main() {
                                 for i in x {
                                     let spell = Spell::new_from_json(i);
                                     match spell {
-                                        Ok(okspell) => spells.push(okspell),
+                                        Ok(okspell) => {let _ = spells.insert(okspell.title, okspell);},
                                         Err(e) => println!("Final load error: {}, {}", e.0, e.1.to_str().unwrap())
                                     }
                                 }
@@ -66,15 +67,30 @@ fn main() {
         },
         Err(_e) => panic!("Error in reading path")
     }
+
+    let mut sources = vec![];
+    let mut school = vec![];
+    let mut casting_units = vec![];
+    let mut shapes = vec![];
+    let mut lists = vec![];
+    let mut proc_eff = vec![];
+    let mut proc_save = vec![];
+    let mut damage_types = vec![];
+    let mut tags = vec![];
+
     for i in spells {
-        setup += &("INSERT INTO spells VALUES (".to_string() + &i.values() + ");");
+        setup += &("INSERT INTO spells VALUES (".to_string() + &i.1.values() + ");");
+        if !sources.contains(&i.1.source) {sources.push(i.1.source)}
+        if !school.contains(&i.1.school) {school.push(i.1.school)}
+        if !casting_units.contains(&i.1.casting_time.1) {casting_units.push(i.1.casting_time.1)}
+        if !shapes.contains(&i.1.range.2) {shapes.push(i.1.range.2)}
+        for j in i.1.spell_lists {if !lists.contains(&j) {lists.push(j)}}
+        if !proc_eff.contains(&i.1.proc.0) {proc_eff.push(i.1.proc.0)}
+        if !proc_save.contains(&i.1.proc.1) {proc_save.push(i.1.proc.1)}
+        for j in i.1.damage.3 {if !damage_types.contains(&j) {damage_types.push(j)}}
+        for j in i.1.tags {if !tags.contains(&j) {tags.push(j)}}
     }
-
-
-
-    /*let spell = Spell::new_from_json(path).unwrap();
-    setup += &("INSERT INTO spells VALUES (".to_string() + &spell.values() + ");"); 
-    */
+    for i in sources {}
 
     connection.execute(setup).unwrap();
 
