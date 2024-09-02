@@ -3,6 +3,7 @@ use serde_json::Error;
 use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
+use std::io;
 fn main() {
     let connection = sqlite::open(":memory:").unwrap();
     let mut setup = "
@@ -33,31 +34,61 @@ fn main() {
             tags TEXT
         );
     ".to_string();
-    //setup += "INSERT INTO spells VALUES('Eldritch Blast', 'Players Handbook', 0, 'Evocation', 0, 1, 'action', 1, 1, 0, 0, 120, 0, 'none', 'text', 'higher text', 'Warlock', 'Ranged Spell Attack', 'none', 1, 10, 0, 'Force', 'Attack');";
-    //println!("{:?}", spell);
-    let mut path = std::path::PathBuf::new();
-    path.push("/home/gerrit/projects/ponder/spells/cantrips/eldritch-blast.json");
-    let spell = Spell::new_from_json(path).unwrap();
-    setup += &("INSERT INTO spells VALUES (".to_string() + &spell.values() + ");");
-    println!("{setup}");
 
+    let mut path = std::path::PathBuf::new();
+    path.push("/home/gerrit/projects/ponder/spells");
+    let mut spells = vec![];
+    match fs::read_dir(path) {
+        Ok(entries) => {
+            let x = entries.map(|res| res.map(|e| e.path())).collect::<Result<Vec<_>, io::Error>>();
+            match x {
+                Ok(mut x) => {
+                    x.sort();
+                    for spell_entry_buff in x {
+                        let spell_entries = fs::read_dir(spell_entry_buff);
+                        match spell_entries {
+                            Ok(entries) => {
+                                let x = entries.map(|res| res.map(|e| e.path())).collect::<Result<Vec<_>, io::Error>>().unwrap();
+                                for i in x {
+                                    let spell = Spell::new_from_json(i);
+                                    match spell {
+                                        Ok(okspell) => spells.push(okspell),
+                                        Err(e) => println!("Final load error: {}, {}", e.0, e.1.to_str().unwrap())
+                                    }
+                                }
+                            },
+                            Err(_e) => panic!("Error in loading entries"),
+                        }
+                    }
+                },
+                Err(_e) => panic!("Error in reading directories")
+            }
+        },
+        Err(_e) => panic!("Error in reading path")
+    }
+    for i in spells {
+        setup += &("INSERT INTO spells VALUES (".to_string() + &i.values() + ");");
+    }
+
+
+
+    /*let spell = Spell::new_from_json(path).unwrap();
+    setup += &("INSERT INTO spells VALUES (".to_string() + &spell.values() + ");"); 
+    */
 
     connection.execute(setup).unwrap();
 
-    let mut query = Query::new("spells","level", "=", QueryValue::Integer(0));
-    query.append("damage_types", "=", QueryValue::Text("Fire".to_owned()));
-    println!("{}", query.text);
+    let mut query = Query::new("spells","level", "=", QueryValue::Integer(8));
+    query.append("radius", ">=", QueryValue::Integer(30));
 
     let mut values = vec![];
     connection.iterate(query.text, |pairs| {
-        println!("{:?}", pairs);
         let pair = pairs[0].1.unwrap_or("None");
         values.push(pair.to_owned());
         true
     }).unwrap();
     for i in values {println!("{i}");}
-
-    }
+}
 
 
 #[derive(Debug)]
@@ -150,7 +181,11 @@ impl Spell {
             for i in &self.tags {s.push_str(&(" ".to_owned() + i))}
             s
         };
-        let s = "'".to_string() + &title + delim + &self.source + "', "+ &self.lv.to_string() + ", '"+ &self.school + "', "+ &(self.ritual as u32).to_string() + ", '"+ &self.school + "', "+ &(self.ritual as u32).to_string() + ", "+ &self.casting_time.0.to_string() + ", '"+ &self.casting_time.1 + "', "+ &(self.casting_time.2.0 as u32).to_string() + ", "+ &(self.casting_time.2.1 as u32).to_string() + ", "+ &(self.casting_time.2.2 as u32).to_string() + ", " + &(self.component_cost as u32).to_string() + ", "+ &self.range.0.to_string() + ", "+ &self.range.1.to_string() + ", '"+ &self.range.2 + delim + &self.text + delim + &self.higher_lv + delim + &spell_list + delim + &self.proc.0 + delim + &self.proc.1 + "', "+ &self.damage.0.to_string() + ", "+ &self.damage.1.to_string() + ", " + &self.damage.2.to_string() + ", '"+ &types + delim + &tags;
+        let title = self.title.clone().replace("'", "''");
+        let source = self.source.clone().replace("'", "''");
+        let text = self.source.clone().replace("'", "''");
+        let higher_lv = self.source.clone().replace("'", "''");
+        let s = "'".to_string() + &title + delim + &source + "', "+ &self.lv.to_string() + ", '"+ &self.school + "', "+ &(self.ritual as u32).to_string() + ", "+ &self.casting_time.0.to_string() + ", '"+ &self.casting_time.1 + "', "+ &(self.casting_time.2.0 as u32).to_string() + ", "+ &(self.casting_time.2.1 as u32).to_string() + ", "+ &(self.casting_time.2.2 as u32).to_string() + ", " + &(self.component_cost as u32).to_string() + ", "+ &self.range.0.to_string() + ", "+ &self.range.1.to_string() + ", '"+ &self.range.2 + delim + &text + delim + &higher_lv + delim + &spell_list + delim + &self.proc.0 + delim + &self.proc.1 + "', "+ &self.damage.0.to_string() + ", "+ &self.damage.1.to_string() + ", " + &self.damage.2.to_string() + ", '"+ &types + delim + &tags + "' ";
         return s
     }
 }
