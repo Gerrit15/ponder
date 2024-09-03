@@ -53,7 +53,7 @@ fn main() {
                                 for i in x {
                                     let spell = Spell::new_from_json(i);
                                     match spell {
-                                        Ok(okspell) => {let _ = spells.insert(okspell.title, okspell);},
+                                        Ok(okspell) => {let _ = spells.insert(okspell.title.clone(), okspell);},
                                         Err(e) => println!("Final load error: {}, {}", e.0, e.1.to_str().unwrap())
                                     }
                                 }
@@ -67,7 +67,6 @@ fn main() {
         },
         Err(_e) => panic!("Error in reading path")
     }
-
     let mut sources = vec![];
     let mut school = vec![];
     let mut casting_units = vec![];
@@ -90,12 +89,15 @@ fn main() {
         for j in i.1.damage.3 {if !damage_types.contains(&j) {damage_types.push(j)}}
         for j in i.1.tags {if !tags.contains(&j) {tags.push(j)}}
     }
-    for i in sources {}
+    println!("Sources: ");
+    for i in &sources {print!("{i}, ")}
+    println!();
 
     connection.execute(setup).unwrap();
 
-    let mut query = Query::new("spells","level", "=", QueryValue::Integer(8));
-    query.append("radius", ">=", QueryValue::Integer(30));
+    let mut query = Query::new("spells","source", "=", QueryValue::Text(sources[0].replace("'", "''")));
+    //let title = self.title.clone().replace("'", "''");
+    query.append("level", ">=", QueryValue::Integer(1));
 
     let mut values = vec![];
     connection.iterate(query.text, |pairs| {
@@ -103,6 +105,7 @@ fn main() {
         values.push(pair.to_owned());
         true
     }).unwrap();
+    println!("Spells: ");
     for i in values {println!("{i}");}
 }
 
