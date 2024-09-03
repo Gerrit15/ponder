@@ -67,6 +67,7 @@ fn main() {
         },
         Err(_e) => panic!("Error in reading path")
     }
+
     let mut sources = vec![];
     let mut school = vec![];
     let mut casting_units = vec![];
@@ -95,9 +96,9 @@ fn main() {
 
     connection.execute(setup).unwrap();
 
-    let mut query = Query::new("spells","source", "=", QueryValue::Text(sources[0].replace("'", "''")));
-    //let title = self.title.clone().replace("'", "''");
-    query.append("level", ">=", QueryValue::Integer(1));
+    let mut query = Query::new("spells","source", "=", QueryValue::Text("Player''s Handbook".to_owned()));
+    query.append("level", "<=", QueryValue::Integer(1));
+    query.append("damage_types", "=", QueryValue::Text(" Force".to_owned()));
 
     let mut values = vec![];
     connection.iterate(query.text, |pairs| {
