@@ -36,8 +36,76 @@ fn main() {
         );
     ".to_string();
 
+    let spells = load_spells("/home/gerrit/projects/ponder/spells");
+    let mut spell_enums = SpellEnums::new();
+
+    for i in spells {
+        setup += &("INSERT INTO spells VALUES (".to_string() + &i.1.values() + ");");
+        spell_enums.update(&i.1);
+    }
+    println!("Sources: ");
+    for i in &spell_enums.sources {print!("{i}, ")}
+    println!();
+
+    connection.execute(setup).unwrap();
+
+    let mut query = Query::new("spells","source", "=", QueryValue::Text("Player''s Handbook".to_owned()));
+    query.append("level", "<=", QueryValue::Integer(1));
+    query.append("damage_types", "=", QueryValue::Text(" Force".to_owned()));
+
+    let mut values = vec![];
+    connection.iterate(query.text, |pairs| {
+        let pair = pairs[0].1.unwrap_or("None");
+        values.push(pair.to_owned());
+        true
+    }).unwrap();
+    println!("Spells: ");
+    for i in values {println!("{i}");}
+}
+
+#[derive(Debug)]
+struct SpellEnums {
+    sources: Vec<String>,
+    school: Vec<String>,
+    casting_units: Vec<String>,
+    shapes: Vec<String>,
+    lists: Vec<String>,
+    proc_eff: Vec<String>,
+    proc_save: Vec<String>,
+    damage_types: Vec<String>,
+    tags: Vec<String>
+}
+
+impl SpellEnums {
+    fn new() -> SpellEnums{
+        SpellEnums { 
+            sources: vec![], 
+            school: vec![], 
+            casting_units: vec![], 
+            shapes: vec![], 
+            lists: vec![], 
+            proc_eff: vec![], 
+            proc_save: vec![], 
+            damage_types: vec![], 
+            tags: vec![] 
+        }
+    }
+    fn update(&mut self, spell: &Spell) {
+        if !self.sources.contains(&spell.source) {self.sources.push(spell.source.clone())}
+        if !self.school.contains(&spell.school) {self.school.push(spell.school.clone())}
+        if !self.casting_units.contains(&spell.casting_time.1) {self.casting_units.push(spell.casting_time.1.clone())}
+        if !self.shapes.contains(&spell.range.2) {self.shapes.push(spell.range.2.clone())}
+        for j in &spell.spell_lists {if !self.lists.contains(&j) {self.lists.push(j.clone())}}
+        if !self.proc_eff.contains(&spell.proc.0) {self.proc_eff.push(spell.proc.0.clone())}
+        if !self.proc_save.contains(&spell.proc.1) {self.proc_save.push(spell.proc.1.clone())}
+        for j in &spell.damage.3 {if !self.damage_types.contains(&j) {self.damage_types.push(j.clone())}}
+        for j in &spell.tags {if !self.tags.contains(&j) {self.tags.push(j.clone())}}
+    }
+}
+
+fn load_spells(path_str: &str) -> HashMap<String, Spell> {
     let mut path = std::path::PathBuf::new();
-    path.push("/home/gerrit/projects/ponder/spells");
+    path.push(path_str);
     let mut spells = HashMap::new();
     match fs::read_dir(path) {
         Ok(entries) => {
@@ -67,47 +135,7 @@ fn main() {
         },
         Err(_e) => panic!("Error in reading path")
     }
-
-    let mut sources = vec![];
-    let mut school = vec![];
-    let mut casting_units = vec![];
-    let mut shapes = vec![];
-    let mut lists = vec![];
-    let mut proc_eff = vec![];
-    let mut proc_save = vec![];
-    let mut damage_types = vec![];
-    let mut tags = vec![];
-
-    for i in spells {
-        setup += &("INSERT INTO spells VALUES (".to_string() + &i.1.values() + ");");
-        if !sources.contains(&i.1.source) {sources.push(i.1.source)}
-        if !school.contains(&i.1.school) {school.push(i.1.school)}
-        if !casting_units.contains(&i.1.casting_time.1) {casting_units.push(i.1.casting_time.1)}
-        if !shapes.contains(&i.1.range.2) {shapes.push(i.1.range.2)}
-        for j in i.1.spell_lists {if !lists.contains(&j) {lists.push(j)}}
-        if !proc_eff.contains(&i.1.proc.0) {proc_eff.push(i.1.proc.0)}
-        if !proc_save.contains(&i.1.proc.1) {proc_save.push(i.1.proc.1)}
-        for j in i.1.damage.3 {if !damage_types.contains(&j) {damage_types.push(j)}}
-        for j in i.1.tags {if !tags.contains(&j) {tags.push(j)}}
-    }
-    println!("Sources: ");
-    for i in &sources {print!("{i}, ")}
-    println!();
-
-    connection.execute(setup).unwrap();
-
-    let mut query = Query::new("spells","source", "=", QueryValue::Text("Player''s Handbook".to_owned()));
-    query.append("level", "<=", QueryValue::Integer(1));
-    query.append("damage_types", "=", QueryValue::Text(" Force".to_owned()));
-
-    let mut values = vec![];
-    connection.iterate(query.text, |pairs| {
-        let pair = pairs[0].1.unwrap_or("None");
-        values.push(pair.to_owned());
-        true
-    }).unwrap();
-    println!("Spells: ");
-    for i in values {println!("{i}");}
+    return spells
 }
 
 
