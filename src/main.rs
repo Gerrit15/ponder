@@ -50,5 +50,5 @@ fn main() {
     println!("Spells: ");
     for i in values {println!("{i}");}*/
 
-    App::new("TEST".to_owned()).start().unwrap();
+    App::new("/home/gerrit/projects/ponder/spells").start().unwrap();
 }

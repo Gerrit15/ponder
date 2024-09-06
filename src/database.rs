@@ -4,7 +4,7 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn new(dir: &str) -> (Database, SpellEnums) {
+    pub fn new(dir: &str) -> (Database, HashMap<String, Spell>, SpellEnums) {
         let connection = sqlite::open(":memory:").unwrap();
         let mut setup = "
             CREATE TABLE spells (
@@ -36,13 +36,13 @@ impl Database {
         let spells = Spell::load_spells(dir);
         let mut spell_enums = SpellEnums::new();
 
-        for i in spells {
+        for i in &spells {
             setup += &("INSERT INTO spells VALUES (".to_string() + &i.1.values() + ");");
             spell_enums.update(&i.1);
         }
         connection.execute(setup).unwrap();
         let db = Database {connection};
-        return (db, spell_enums)
+        return (db, spells, spell_enums)
     }
 }
 

@@ -1,14 +1,22 @@
 use crate::*;
-#[derive(Debug)]
 pub struct App {
-    pub text: String,
-    pub number: u32,
     pub exit: bool,
+    pub db: Database,
+    pub spells: HashMap<String, Spell>,
+    pub spell_enums: SpellEnums,
+    source_index: usize,
 }
 
 impl App {
-    pub fn new(text: String) -> App {
-        App { text, number: 0, exit: false }
+    pub fn new(dir: &str) -> App {
+        let (db, spells, spell_enums) = Database::new(dir);
+        App {
+            exit: false,
+            db,
+            spells,
+            spell_enums,
+            source_index: 0,
+        }
     }
     pub fn start(&mut self) -> io::Result<()> {
         let mut terminal = ratatui::init();
@@ -43,8 +51,8 @@ impl App {
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            KeyCode::Left => self.decrement_counter(),
-            KeyCode::Right => self.increment_counter(),
+            KeyCode::Char('l') => self.next_source(),
+            KeyCode::Char('h') => self.prev_source(),
             _ => ()
         }
     }
@@ -52,11 +60,19 @@ impl App {
     pub fn exit(&mut self) {
         self.exit = true;
     }
-    pub fn increment_counter(&mut self) {
-        self.number += 1;
+    pub fn next_source(&mut self) {
+        if (self.source_index + 1) == self.spell_enums.sources.len() {
+            self.source_index = 0
+        } else {
+            self.source_index += 1
+        }
     }
-    pub fn decrement_counter(&mut self) {
-        self.number -= 1;
+    pub fn prev_source(&mut self) {
+        if self.source_index == 0 {
+            self.source_index = self.spell_enums.sources.len() - 1
+        } else {
+            self.source_index -= 1
+        }
     }
 }
 
@@ -64,10 +80,6 @@ impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Title::from(" TEST TITLE ".bold());
         let instructions = Title::from(Line::from(vec![
-            " Down ".into(),
-            "<--".blue().bold(),
-            " Up ".into(),
-            "-->".blue().bold(),
             " Quit ".into(),
             "<Q> ".blue().bold(),
         ]));
@@ -75,12 +87,9 @@ impl Widget for &App {
             .title(title.alignment(Alignment::Center))
             .title(instructions.alignment(Alignment::Center).position(Position::Bottom),)
             .border_set(border::THICK);
-        let counter_text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.number.to_string().yellow(),
-        ])]);
+        let text = Text::from(vec![Line::from(vec![self.spell_enums.sources[self.source_index].clone().into()])]);
 
-        Paragraph::new(counter_text)
+        Paragraph::new(text)
             .centered()
             .block(block)
             .render(area, buf)
