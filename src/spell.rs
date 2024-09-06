@@ -1,36 +1,6 @@
-mod database;
-mod spellenums;
-mod spell;
-use sqlite::{self, Connection};
-use serde_json::Error;
-use serde::Deserialize;
-use std::fs;
-use std::path::PathBuf;
-use std::io;
-use std::collections::HashMap;
-use database::{Database, Query, QueryValue};
-use spellenums::SpellEnums;
-use spell::Spell;
+use crate::*;
 
-fn main() {
-    let (db, spell_enums) = Database::new("/home/gerrit/projects/ponder/spells");
-    for i in spell_enums.damage_types {print!("{i}, ")}
-    let mut query = Query::new("spells","source", "=", QueryValue::Text("Player''s Handbook".to_owned()));
-    query.append("level", "<=", QueryValue::Integer(1));
-    query.append("damage_types", "=", QueryValue::Text(" Force".to_owned()));
-
-    let mut values = vec![];
-    db.connection.iterate(query.text, |pairs| {
-        let pair = pairs[0].1.unwrap_or("None");
-        values.push(pair.to_owned());
-        true
-    }).unwrap();
-    println!("Spells: ");
-    for i in values {println!("{i}");}
-}
-
-
-/*#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Spell {
     pub title: String, 
     pub source: String,
@@ -92,7 +62,7 @@ impl Spell {
         let s = "'".to_string() + &title + delim + &source + "', "+ &self.lv.to_string() + ", '"+ &self.school + "', "+ &(self.ritual as u32).to_string() + ", "+ &self.casting_time.0.to_string() + ", '"+ &self.casting_time.1 + "', "+ &(self.casting_time.2.0 as u32).to_string() + ", "+ &(self.casting_time.2.1 as u32).to_string() + ", "+ &(self.casting_time.2.2 as u32).to_string() + ", " + &(self.component_cost as u32).to_string() + ", "+ &self.range.0.to_string() + ", "+ &self.range.1.to_string() + ", '"+ &self.range.2 + delim + &text + delim + &higher_lv + delim + &spell_list + delim + &self.proc.0 + delim + &self.proc.1 + "', "+ &self.damage.0.to_string() + ", "+ &self.damage.1.to_string() + ", " + &self.damage.2.to_string() + ", '"+ &types + delim + &tags + "' ";
         return s
     }
-    fn load_spells(path_str: &str) -> HashMap<String, Spell> {
+    pub fn load_spells(path_str: &str) -> HashMap<String, Spell> {
         let mut path = std::path::PathBuf::new();
         path.push(path_str);
         let mut spells = HashMap::new();
@@ -126,4 +96,4 @@ impl Spell {
         }
         return spells
     }
-}*/
+}

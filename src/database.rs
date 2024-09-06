@@ -33,7 +33,7 @@ impl Database {
                 damage_types TEXT,
                 tags TEXT
         );".to_string();
-        let spells = load_spells(dir);
+        let spells = Spell::load_spells(dir);
         let mut spell_enums = SpellEnums::new();
 
         for i in spells {
@@ -43,5 +43,38 @@ impl Database {
         connection.execute(setup).unwrap();
         let db = Database {connection};
         return (db, spell_enums)
+    }
+}
+
+#[derive(Debug)]
+pub struct Query {
+    pub text: String
+}
+
+impl Query {
+    pub fn new(table: &str, field: &str, operator: &str, value: QueryValue) -> Query {
+        Query {text: "SELECT * FROM ".to_owned() + table + " WHERE " + field + " " + operator + " " + &value.to_string()}
+    }
+    
+    pub fn append(&mut self, field: &str, operator: &str, value: QueryValue) {
+        self.text += &(" AND ".to_string() + &field + " " + &operator + " " + &value.to_string());
+    }
+}
+
+#[derive(Debug)]
+#[allow(unused)]
+pub enum QueryValue {
+    Text(String),
+    Integer(i32),
+    Boolean(bool)
+}
+
+impl QueryValue {
+    pub fn to_string(&self) -> String {
+        return match self {
+            Self::Text(t) => "'".to_owned() + &t.to_owned() + "'",
+            Self::Integer(i) => i.to_string(),
+            Self::Boolean(b) => b.to_string(),
+        }
     }
 }
