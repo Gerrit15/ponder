@@ -1,3 +1,5 @@
+use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType}};
+
 use crate::*;
 pub struct App {
     pub exit: bool,
@@ -40,7 +42,22 @@ impl App {
 
     //Simply draws our frame. this will be where to edit the appearence
     pub fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
+        let out_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![
+                Constraint::Percentage(7),
+                Constraint::Percentage(93),
+            ]).split(frame.area());
+        let in_layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(25),
+                Constraint::Percentage(75)
+            ]).split(out_layout[1]);
+        //frame.render_widget(self, frame.area());
+        frame.render_widget(Paragraph::new("Top").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
+        frame.render_widget(Paragraph::new("Frame").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[0]);
+        frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
     }
 
     //This is how we manage *shit that happened* in the loop 
