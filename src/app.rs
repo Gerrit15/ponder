@@ -18,6 +18,9 @@ impl App {
             source_index: 0,
         }
     }
+
+    //Init function, setting up everything it'll need, kinda acts as a wrapper around Run()
+    //It makes sure that when it stops running it cleans up
     pub fn start(&mut self) -> io::Result<()> {
         let mut terminal = ratatui::init();
         terminal.clear()?;
@@ -26,6 +29,7 @@ impl App {
         app_result
     }
 
+    //the main loop of the App, rn it just draws a frame and asks for what happened
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
@@ -34,10 +38,13 @@ impl App {
         Ok(())
     }
 
+    //Simply draws our frame. this will be where to edit the appearence
     pub fn draw(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
 
+    //This is how we manage *shit that happened* in the loop 
+    //Right now mainly just offloads onto checking keys
     pub fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
@@ -48,6 +55,7 @@ impl App {
         Ok(())
     }
 
+    //this is where we check the keys
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
@@ -57,9 +65,12 @@ impl App {
         }
     }
 
+    //Says it on the tin, it just flips our bit
     pub fn exit(&mut self) {
         self.exit = true;
     }
+
+    //A test function, cycles between sources
     pub fn next_source(&mut self) {
         if (self.source_index + 1) == self.spell_enums.sources.len() {
             self.source_index = 0
@@ -67,6 +78,8 @@ impl App {
             self.source_index += 1
         }
     }
+
+    //A test function, cycles between sources
     pub fn prev_source(&mut self) {
         if self.source_index == 0 {
             self.source_index = self.spell_enums.sources.len() - 1
