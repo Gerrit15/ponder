@@ -1,4 +1,4 @@
-use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, ListItem, List, HighlightSpacing, StatefulWidget, ListState, block}, style::{Style, Modifier}, symbols, buffer};
+use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState}, style::{Style, Modifier}};
 
 use crate::*;
 pub struct App {
@@ -57,7 +57,8 @@ impl App {
                 Constraint::Percentage(75)
             ]).split(out_layout[1]);
 
-        let list = List::new(self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>())
+        let spell_names = self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>();
+        let list = List::new(spell_names.clone())
                     .block(Block::bordered().title("LIST TITLE"))
                     .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                     .highlight_symbol(">")
@@ -65,20 +66,11 @@ impl App {
         frame.render_stateful_widget(list, in_layout[0], &mut self.spell_state);
             
 //        frame.render_widget(self, frame.area());
-        frame.render_widget(Paragraph::new("Top").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
-//        frame.render_widget(Paragraph::new("Frame").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[0]);
-        frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
+        frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
+        frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
+//        frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
     }
-/*
-    fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
-        let block = Block::new()
-            .title(Line::raw("LIST TITLE").centered())
-            .borders(Borders::TOP)
-            .border_set(symbols::border::EMPTY);
-        let items: Vec<ListItem> = self.spells.values().map(|s| ListItem::from(s.title.clone())).collect();
-        let list = List::new(items).block(block).highlight_symbol(">").highlight_spacing(HighlightSpacing::Always);
-        StatefulWidget::render(list, area, buf, &mut self.spell_state)
-    }*/
+
 
 
     //This is how we manage *shit that happened* in the loop 
@@ -99,6 +91,8 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('l') => self.next_source(),
             KeyCode::Char('h') => self.prev_source(),
+            KeyCode::Char('j') => self.spell_state.select_next(),
+            KeyCode::Char('k') => self.spell_state.select_previous(),
             _ => ()
         }
     }
