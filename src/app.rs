@@ -1,4 +1,4 @@
-use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType}};
+use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, ListItem, List, HighlightSpacing, StatefulWidget, ListState, block}, style::{Style, Modifier}, symbols, buffer};
 
 use crate::*;
 pub struct App {
@@ -7,6 +7,7 @@ pub struct App {
     pub spells: HashMap<String, Spell>,
     pub spell_enums: SpellEnums,
     source_index: usize,
+    spell_state: ListState 
 }
 
 impl App {
@@ -18,6 +19,7 @@ impl App {
             spells,
             spell_enums,
             source_index: 0,
+            spell_state: ListState::default(),
         }
     }
 
@@ -41,12 +43,12 @@ impl App {
     }
 
     //Simply draws our frame. this will be where to edit the appearence
-    pub fn draw(&self, frame: &mut Frame) {
+    pub fn draw(&mut self, frame: &mut Frame) {
         let out_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![
-                Constraint::Percentage(7),
-                Constraint::Percentage(93),
+                Constraint::Percentage(6),
+                Constraint::Percentage(94),
             ]).split(frame.area());
         let in_layout = Layout::default()
             .direction(Direction::Horizontal)
@@ -54,11 +56,30 @@ impl App {
                 Constraint::Percentage(25),
                 Constraint::Percentage(75)
             ]).split(out_layout[1]);
-        //frame.render_widget(self, frame.area());
+
+        let list = List::new(self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>())
+                    .block(Block::bordered().title("LIST TITLE"))
+                    .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                    .highlight_symbol(">")
+                    .repeat_highlight_symbol(true);
+        frame.render_stateful_widget(list, in_layout[0], &mut self.spell_state);
+            
+//        frame.render_widget(self, frame.area());
         frame.render_widget(Paragraph::new("Top").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
-        frame.render_widget(Paragraph::new("Frame").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[0]);
+//        frame.render_widget(Paragraph::new("Frame").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[0]);
         frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
     }
+/*
+    fn render_list(&mut self, area: Rect, buf: &mut Buffer) {
+        let block = Block::new()
+            .title(Line::raw("LIST TITLE").centered())
+            .borders(Borders::TOP)
+            .border_set(symbols::border::EMPTY);
+        let items: Vec<ListItem> = self.spells.values().map(|s| ListItem::from(s.title.clone())).collect();
+        let list = List::new(items).block(block).highlight_symbol(">").highlight_spacing(HighlightSpacing::Always);
+        StatefulWidget::render(list, area, buf, &mut self.spell_state)
+    }*/
+
 
     //This is how we manage *shit that happened* in the loop 
     //Right now mainly just offloads onto checking keys
