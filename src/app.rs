@@ -1,4 +1,4 @@
-use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState}, style::{Style, Modifier}};
+use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState, Wrap}, style::{Style, Modifier}};
 
 use crate::*;
 pub struct App {
@@ -67,7 +67,7 @@ impl App {
             
 //        frame.render_widget(self, frame.area());
         frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
-        frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
+        frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).wrap(Wrap {trim: true}).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
 //        frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
     }
 
