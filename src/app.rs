@@ -22,7 +22,7 @@ impl App {
             //spells: spells.clone(),
             spell_enums,
             selected_tab: Tab::new(),
-            pages: vec![Box::new(MainList::new(spells))]
+            pages: vec![Box::new(MainList::new(spells)), Box::new(Search::new())]
         }
     }
 

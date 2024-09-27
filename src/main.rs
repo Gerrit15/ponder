@@ -2,8 +2,9 @@ mod database;
 mod spellenums;
 mod spell;
 mod app;
-mod main_list;
 mod page;
+mod main_list;
+mod search;
 mod tab;
 use sqlite::{self, Connection};
 use serde_json::Error;
@@ -18,6 +19,7 @@ use spell::Spell;
 use app::App;
 use page::Page;
 use main_list::MainList;
+use search::Search;
 use tab::Tab;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
