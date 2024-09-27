@@ -4,6 +4,7 @@ mod spell;
 mod app;
 mod main_list;
 mod page;
+mod tab;
 use sqlite::{self, Connection};
 use serde_json::Error;
 use serde::Deserialize;
@@ -17,18 +18,13 @@ use spell::Spell;
 use app::App;
 use page::Page;
 use main_list::MainList;
+use tab::Tab;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
-    buffer::Buffer,
-    layout::{Alignment, Rect},
-    style::Stylize,
-    symbols::border,
-    text::{Line, Text},
+    layout::Rect,
     widgets::{
-        block::{Position, Title},
         Block,
         Paragraph,
-        Widget
     },
     DefaultTerminal, Frame
 };
