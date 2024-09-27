@@ -1,3 +1,5 @@
+use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType}};
+
 use crate::*;
 
 pub struct App {
@@ -7,7 +9,6 @@ pub struct App {
     //Spells hash could just be in 1st page
     pub spells: HashMap<String, Spell>,
     pub spell_enums: SpellEnums,
-    source_index: usize,
     page_num: usize,
     pages: Vec<Box<dyn Page>>
 }
@@ -20,7 +21,6 @@ impl App {
             db,
             spells: spells.clone(),
             spell_enums,
-            source_index: 0,
             page_num: 0,
             pages: vec![Box::new(MainList::new(spells))]
         }
@@ -39,10 +39,21 @@ impl App {
     //the main loop of the App, rn it just draws a frame and asks for what happened
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
-            terminal.draw(|frame| self.pages[self.page_num].draw_page(frame))?;
+            terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
         }
         Ok(())
+    }
+
+    pub fn draw(&mut self, frame: &mut Frame) {
+        let out_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![
+                Constraint::Percentage(6),
+                Constraint::Percentage(94),
+            ]).split(frame.area());
+        frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
+        self.pages[self.page_num].draw_page(frame, out_layout[1]);
     }
 
 
@@ -69,25 +80,5 @@ impl App {
     //Says it on the tin, it just flips our bit
     pub fn exit(&mut self) {
         self.exit = true;
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Title::from(" TEST TITLE ".bold());
-        let instructions = Title::from(Line::from(vec![
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
-        ]));
-        let block = Block::bordered()
-            .title(title.alignment(Alignment::Center))
-            .title(instructions.alignment(Alignment::Center).position(Position::Bottom),)
-            .border_set(border::THICK);
-        let text = Text::from(vec![Line::from(vec![self.spell_enums.sources[self.source_index].clone().into()])]);
-
-        Paragraph::new(text)
-            .centered()
-            .block(block)
-            .render(area, buf)
     }
 }

@@ -17,19 +17,13 @@ impl MainList {
 }
 
 impl Page for MainList {
-    fn draw_page(&mut self, frame: &mut Frame) {
-        let out_layout = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(vec![
-                Constraint::Percentage(6),
-                Constraint::Percentage(94),
-            ]).split(frame.area());
+    fn draw_page(&mut self, frame: &mut Frame, out_layout: Rect) {
         let in_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
                 Constraint::Percentage(25),
                 Constraint::Percentage(75)
-            ]).split(out_layout[1]);
+            ]).split(out_layout);
 
 
         let spell_names = self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>();
@@ -40,8 +34,6 @@ impl Page for MainList {
                     .repeat_highlight_symbol(true);
 
         frame.render_stateful_widget(list, in_layout[0], &mut self.spell_state);
-            
-        frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
         frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).wrap(Wrap {trim: true}).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
 
     }
