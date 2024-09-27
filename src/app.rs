@@ -10,7 +10,6 @@ pub struct App {
     //pub spells: HashMap<String, Spell>,
     pub spell_enums: SpellEnums,
     selected_tab: Tab,
-    page_num: usize,
     pages: Vec<Box<dyn Page>>,
 }
 
@@ -23,7 +22,6 @@ impl App {
             //spells: spells.clone(),
             spell_enums,
             selected_tab: Tab::new(),
-            page_num: 0,
             pages: vec![Box::new(MainList::new(spells))]
         }
     }
@@ -56,7 +54,7 @@ impl App {
             ]).split(frame.area());
 
         self.selected_tab.draw(frame, out_layout[0]);
-        self.pages[self.page_num].draw_page(frame, out_layout[1]);
+        self.pages[self.selected_tab.pointer].draw_page(frame, out_layout[1]);
     }
 
 
@@ -78,7 +76,7 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Right => self.selected_tab.next(),
             KeyCode::Left => self.selected_tab.prev(),
-            k => {self.pages[self.page_num].key(k)}
+            k => {self.pages[self.selected_tab.pointer].key(k)}
         }
     }
 

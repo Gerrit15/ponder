@@ -4,7 +4,7 @@ use crate::*;
 
 pub struct Tab {
     titles: Vec<String>,
-    pointer: usize
+    pub pointer: usize
 }
 
 impl Tab {
