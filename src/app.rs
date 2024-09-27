@@ -1,13 +1,16 @@
-use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState, Wrap}, style::{Style, Modifier}};
-
+//use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState, Wrap}, style::{Style, Modifier}};
 use crate::*;
+
 pub struct App {
     pub exit: bool,
     pub db: Database,
+    //TODO make sure in the end that this is actually used?
+    //Spells hash could just be in 1st page
     pub spells: HashMap<String, Spell>,
     pub spell_enums: SpellEnums,
     source_index: usize,
-    spell_state: ListState 
+    page_num: usize,
+    pages: Vec<Box<dyn Page>>
 }
 
 impl App {
@@ -16,10 +19,11 @@ impl App {
         App {
             exit: false,
             db,
-            spells,
+            spells: spells.clone(),
             spell_enums,
             source_index: 0,
-            spell_state: ListState::default(),
+            page_num: 0,
+            pages: vec![Box::new(MainList::new(spells))]
         }
     }
 
@@ -36,41 +40,12 @@ impl App {
     //the main loop of the App, rn it just draws a frame and asks for what happened
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
+            //terminal.draw(|frame| self.draw(frame))?;
+            terminal.draw(|frame| self.pages[self.page_num].draw_page(frame))?;
             self.handle_events()?;
         }
         Ok(())
     }
-
-    //Simply draws our frame. this will be where to edit the appearence
-    pub fn draw(&mut self, frame: &mut Frame) {
-        let out_layout = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints(vec![
-                Constraint::Percentage(6),
-                Constraint::Percentage(94),
-            ]).split(frame.area());
-        let in_layout = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints(vec![
-                Constraint::Percentage(25),
-                Constraint::Percentage(75)
-            ]).split(out_layout[1]);
-
-        let spell_names = self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>();
-        let list = List::new(spell_names.clone())
-                    .block(Block::bordered().title("LIST TITLE"))
-                    .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-                    .highlight_symbol(">")
-                    .repeat_highlight_symbol(true);
-        frame.render_stateful_widget(list, in_layout[0], &mut self.spell_state);
-            
-//        frame.render_widget(self, frame.area());
-        frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
-        frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).wrap(Wrap {trim: true}).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
-//        frame.render_widget(Paragraph::new(self.spell_enums.school[self.source_index].clone()).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
-    }
-
 
 
     //This is how we manage *shit that happened* in the loop 
@@ -91,8 +66,8 @@ impl App {
             KeyCode::Char('q') => self.exit(),
             KeyCode::Char('l') => self.next_source(),
             KeyCode::Char('h') => self.prev_source(),
-            KeyCode::Char('j') => self.spell_state.select_next(),
-            KeyCode::Char('k') => self.spell_state.select_previous(),
+            //KeyCode::Char('j') => self.spell_state.select_next(),
+            //KeyCode::Char('k') => self.spell_state.select_previous(),
             _ => ()
         }
     }
