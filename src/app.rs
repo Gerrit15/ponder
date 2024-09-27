@@ -1,4 +1,3 @@
-//use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType, List, ListState, Wrap}, style::{Style, Modifier}};
 use crate::*;
 
 pub struct App {
@@ -40,7 +39,6 @@ impl App {
     //the main loop of the App, rn it just draws a frame and asks for what happened
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
-            //terminal.draw(|frame| self.draw(frame))?;
             terminal.draw(|frame| self.pages[self.page_num].draw_page(frame))?;
             self.handle_events()?;
         }
@@ -64,8 +62,6 @@ impl App {
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            //KeyCode::Char('j') => self.spell_state.select_next(),
-            //KeyCode::Char('k') => self.spell_state.select_previous(),
             k => {self.pages[self.page_num].key(k)}
         }
     }
@@ -73,24 +69,6 @@ impl App {
     //Says it on the tin, it just flips our bit
     pub fn exit(&mut self) {
         self.exit = true;
-    }
-
-    //A test function, cycles between sources
-    pub fn next_source(&mut self) {
-        if (self.source_index + 1) == self.spell_enums.sources.len() {
-            self.source_index = 0
-        } else {
-            self.source_index += 1
-        }
-    }
-
-    //A test function, cycles between sources
-    pub fn prev_source(&mut self) {
-        if self.source_index == 0 {
-            self.source_index = self.spell_enums.sources.len() - 1
-        } else {
-            self.source_index -= 1
-        }
     }
 }
 

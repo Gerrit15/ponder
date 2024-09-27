@@ -11,7 +11,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::io;
 use std::collections::HashMap;
-use database::{Database, Query, QueryValue};
+use database::Database;
 use spellenums::SpellEnums;
 use spell::Spell;
 use app::App;
