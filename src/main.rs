@@ -36,7 +36,8 @@ use ratatui::{
 /*
 * TODO
 *  - Filtering with strings, should happen after get Vec<> from hashmap with a search
-*  - Frontend
+*  - Config
+*  - cmd line args
 *  - idk make it nice
 */
 
