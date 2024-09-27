@@ -17,13 +17,13 @@ impl MainList {
 }
 
 impl Page for MainList {
-    fn draw_page(&mut self, frame: &mut Frame, out_layout: Rect) {
+    fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let in_layout = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
                 Constraint::Percentage(25),
                 Constraint::Percentage(75)
-            ]).split(out_layout);
+            ]).split(layout);
 
 
         let spell_names = self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>();
