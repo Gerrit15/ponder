@@ -45,4 +45,11 @@ impl Page for MainList {
         frame.render_widget(Paragraph::new(self.spells.get(&spell_names[self.spell_state.selected().unwrap_or(0)]).unwrap().text.clone()).wrap(Wrap {trim: true}).block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), in_layout[1]);
 
     }
+    fn key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char('j') => self.spell_state.select_next(),
+            KeyCode::Char('k') => self.spell_state.select_previous(),
+            _ => ()
+        }
+    }
 }

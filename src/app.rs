@@ -64,11 +64,9 @@ impl App {
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
-            KeyCode::Char('l') => self.next_source(),
-            KeyCode::Char('h') => self.prev_source(),
             //KeyCode::Char('j') => self.spell_state.select_next(),
             //KeyCode::Char('k') => self.spell_state.select_previous(),
-            _ => ()
+            k => {self.pages[self.page_num].key(k)}
         }
     }
 
