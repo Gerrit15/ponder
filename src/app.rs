@@ -21,7 +21,7 @@ impl App {
             db,
             //spells: spells.clone(),
             spell_enums,
-            selected_tab: Tab::new(),
+            selected_tab: Tab::new(vec!["Spells".to_string(), "Search".to_string()]),
             pages: vec![Box::new(MainList::new(spells)), Box::new(Search::new())]
         }
     }

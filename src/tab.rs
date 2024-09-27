@@ -8,9 +8,9 @@ pub struct Tab {
 }
 
 impl Tab {
-    pub fn new() -> Tab {
+    pub fn new(titles: Vec<String>) -> Tab {
         Tab { 
-            titles: vec!["Spells".to_string(), "Search".to_string(), "Log".to_string()],
+            titles,
             pointer: 0
         }
     }
