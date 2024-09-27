@@ -2,6 +2,8 @@ mod database;
 mod spellenums;
 mod spell;
 mod app;
+mod main_list;
+mod page;
 use sqlite::{self, Connection};
 use serde_json::Error;
 use serde::Deserialize;
@@ -13,6 +15,8 @@ use database::{Database, Query, QueryValue};
 use spellenums::SpellEnums;
 use spell::Spell;
 use app::App;
+use page::Page;
+use main_list::MainList;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     buffer::Buffer,
