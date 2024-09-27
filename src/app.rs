@@ -1,4 +1,4 @@
-use ratatui::{prelude::{Layout, Direction, Constraint}, widgets::{Borders, BorderType}};
+use ratatui::prelude::{Layout, Direction, Constraint};
 
 use crate::*;
 
@@ -7,10 +7,11 @@ pub struct App {
     pub db: Database,
     //TODO make sure in the end that this is actually used?
     //Spells hash could just be in 1st page
-    pub spells: HashMap<String, Spell>,
+    //pub spells: HashMap<String, Spell>,
     pub spell_enums: SpellEnums,
+    selected_tab: Tab,
     page_num: usize,
-    pages: Vec<Box<dyn Page>>
+    pages: Vec<Box<dyn Page>>,
 }
 
 impl App {
@@ -19,8 +20,9 @@ impl App {
         App {
             exit: false,
             db,
-            spells: spells.clone(),
+            //spells: spells.clone(),
             spell_enums,
+            selected_tab: Tab::new(),
             page_num: 0,
             pages: vec![Box::new(MainList::new(spells))]
         }
@@ -52,7 +54,8 @@ impl App {
                 Constraint::Percentage(6),
                 Constraint::Percentage(94),
             ]).split(frame.area());
-        frame.render_widget(Paragraph::new("TEST").block(Block::new().borders(Borders::ALL).border_type(BorderType::Rounded)), out_layout[0]);
+
+        self.selected_tab.draw(frame, out_layout[0]);
         self.pages[self.page_num].draw_page(frame, out_layout[1]);
     }
 
@@ -73,6 +76,8 @@ impl App {
     pub fn handle_key_event(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
+            KeyCode::Right => self.selected_tab.next(),
+            KeyCode::Left => self.selected_tab.prev(),
             k => {self.pages[self.page_num].key(k)}
         }
     }
