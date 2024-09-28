@@ -5,8 +5,9 @@ use crate::*;
 pub struct Search {
     spell_enums: SpellEnums,
     popup: bool,
+    selected: SearchSelected,
     tags_state: ListState,
-    pre_search: PreSearch,
+    pre_search: SpellEnums,
 }
 
 impl Search {
@@ -15,8 +16,121 @@ impl Search {
             spell_enums,
             popup: false,
             tags_state: ListState::default(),
-            pre_search: PreSearch::new()
+            selected: SearchSelected::TAGS,
+            pre_search: SpellEnums::new()
         }
+    }
+    //TODO make a macro for this, shit sucks
+    fn get_checked(&self) -> Vec<String> {
+        let mut tabs: Vec<String> = vec![];
+        tabs.push("[ CLEAR ]".to_owned());
+        tabs.push("[ NONE ]".to_owned());
+        tabs.push("[ ALL ]".to_owned());
+
+        use SearchSelected::*;
+        match self.selected {
+            SOURCES => {
+                for i in &self.spell_enums.sources {
+                    let check; 
+                    if self.pre_search.sources.contains(i) {
+                        check = "[+]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            SCHOOL => {
+                 for i in &self.spell_enums.school {
+                    let check; 
+                    if self.pre_search.school.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            CASTINGUNITS => {
+                 for i in &self.spell_enums.casting_units {
+                    let check; 
+                    if self.pre_search.casting_units.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            SHAPES => {
+                 for i in &self.spell_enums.shapes {
+                    let check; 
+                    if self.pre_search.shapes.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            LISTS => {
+                 for i in &self.spell_enums.lists{
+                    let check; 
+                    if self.pre_search.lists.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            PROCEFF => {
+                 for i in &self.spell_enums.proc_eff{
+                    let check; 
+                    if self.pre_search.proc_eff.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            PROCSAVE => {
+                 for i in &self.spell_enums.proc_save{
+                    let check; 
+                    if self.pre_search.proc_save.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            DMGTYPE => {
+                 for i in &self.spell_enums.damage_types{
+                    let check; 
+                    if self.pre_search.damage_types.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+            TAGS => {
+                 for i in &self.spell_enums.tags{
+                    let check; 
+                    if self.pre_search.tags.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i) 
+                }
+            },
+        }
+
+        return tabs
     }
 }
 
@@ -25,27 +139,15 @@ impl Page for Search {
         let area = popup_area(layout, 60, 20);
         frame.render_widget(Paragraph::new(self.pre_search.tags.join(" ")), layout);
         if self.popup {
-            let checked_tabs: Vec<String> = {
-                let mut tabs = vec![];
-                for i in &self.spell_enums.tags {
-                    let check; 
-                    if self.pre_search.tags.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i)
-                }
-                tabs
-            };
-            //let tags = List::new(self.spell_enums.tags.clone())
-            let tags = List::new(checked_tabs)
+            let checked_tabs = self.get_checked();
+            //let tags = List::new(self.spell_enums.tags.clone());
+            let list = List::new(checked_tabs)
                 .block(Block::bordered().title("TAGS"))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">")
                 .repeat_highlight_symbol(true);
             frame.render_widget(Clear, area);
-            frame.render_stateful_widget(tags, area, &mut self.tags_state);
+            frame.render_stateful_widget(list, area, &mut self.tags_state);
         }
     }
     fn key(&mut self, key: KeyCode) {
@@ -54,7 +156,10 @@ impl Page for Search {
             KeyCode::Char('j') => if self.popup { self.tags_state.select_next() }
             KeyCode::Char('k') => if self.popup { self.tags_state.select_previous() }
             KeyCode::Enter => if self.popup {match self.tags_state.selected() {
-                Some(n) => self.pre_search.toggle_tag(&self.spell_enums.tags[n]),
+                //Some(0) => for i in self.pre_search.toggle_tag(&self.spell_enums.tags[i]),
+                Some(0) => self.pre_search.tags.clear(),
+                Some(2) => self.pre_search.tags = self.spell_enums.tags.clone(),
+                Some(n) => self.pre_search.toggle_tag(&self.spell_enums.tags[n-3]),
                 _ => ()
             }}
             _ => ()
@@ -73,20 +178,15 @@ fn popup_area(area: Rect, percent_x: u16, percent_y: u16) -> Rect {
 
 
 #[derive(Debug)]
-struct PreSearch {
-    tags: Vec<String>
-}
-
-impl PreSearch {
-    pub fn new() -> PreSearch {
-        PreSearch { tags: vec![] }
-    }
-
-    pub fn toggle_tag(&mut self, s:  &String) {
-        let index = self.tags.iter().position(|r| r == s);
-        match index {
-            Some(n) => {let _ = self.tags.remove(n);},
-            None => self.tags.push(s.clone())
-        };
-    }
+#[allow(dead_code)]
+enum SearchSelected {
+    SOURCES,
+    SCHOOL,
+    CASTINGUNITS,
+    SHAPES,
+    LISTS,
+    PROCEFF,
+    PROCSAVE,
+    DMGTYPE,
+    TAGS,
 }

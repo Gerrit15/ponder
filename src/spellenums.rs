@@ -38,4 +38,11 @@ impl SpellEnums {
         for j in &spell.damage.3 {if !self.damage_types.contains(&j) {self.damage_types.push(j.clone())}}
         for j in &spell.tags {if !self.tags.contains(&j) {self.tags.push(j.clone())}}
     }
+    pub fn toggle_tag(&mut self, s:  &String) {
+        let index = self.tags.iter().position(|r| r == s);
+        match index {
+            Some(n) => {let _ = self.tags.remove(n);},
+            None => self.tags.push(s.clone())
+        };
+    }
 }
