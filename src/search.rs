@@ -6,7 +6,7 @@ pub struct Search {
     spell_enums: SpellEnums,
     popup: bool,
     selected: SearchSelected,
-    tags_state: ListState,
+    states: Vec<ListState>,
     pre_search: SpellEnums,
 }
 
@@ -15,7 +15,7 @@ impl Search {
         Search {
             spell_enums,
             popup: false,
-            tags_state: ListState::default(),
+            states: vec![ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default()],
             selected: SearchSelected::SCHOOL,
             pre_search: SpellEnums::new()
         }
@@ -50,12 +50,25 @@ impl Search {
         checks!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types);
         return tabs
     }
+
+    fn next_select(&mut self) {
+        let mut u = usize::from(self.selected.clone());
+        if u == 8 {u = 0}
+        else {u += 1}
+        self.selected = SearchSelected::from_usize(u).unwrap();
+    }
+    fn prev_select(&mut self) {
+        let mut u = usize::from(self.selected.clone());
+        if u == 0 {u = 8}
+        else {u -= 1}
+        self.selected = SearchSelected::from_usize(u).unwrap();
+    }
 }
 
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let area = popup_area(layout, 60, 20);
-        frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
+        //frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
         if self.popup {
             let checked_tabs = self.get_checked();
             //let tags = List::new(self.spell_enums.tags.clone());
@@ -65,15 +78,21 @@ impl Page for Search {
                 .highlight_symbol(">")
                 .repeat_highlight_symbol(true);
             frame.render_widget(Clear, area);
-            frame.render_stateful_widget(list, area, &mut self.tags_state);
+            frame.render_stateful_widget(list, area, &mut self.states[self.selected.clone() as usize]);
         }
     }
     fn key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Char(' ') => self.popup = !self.popup,
-            KeyCode::Char('j') => if self.popup { self.tags_state.select_next() }
-            KeyCode::Char('k') => if self.popup { self.tags_state.select_previous() }
-            KeyCode::Enter => if self.popup {match self.tags_state.selected() {
+            KeyCode::Char('j') => {
+                if self.popup { self.states[self.selected.clone() as usize].select_next() }
+                else {self.next_select()}
+            }
+            KeyCode::Char('k') => {
+                if self.popup { self.states[self.selected.clone() as usize].select_previous() }
+                else {self.prev_select()}
+            }
+            KeyCode::Enter => if self.popup {match self.states[self.selected.clone() as usize].selected() {
                 Some(0) => self.pre_search.tags.clear(),
                 //Some(1) => set all to negative
                 Some(2) => self.pre_search.tags = self.spell_enums.tags.clone(),
@@ -95,8 +114,7 @@ fn popup_area(area: Rect, percent_x: u16, percent_y: u16) -> Rect {
 }
 
 
-#[derive(Debug)]
-#[allow(dead_code)]
+#[derive(Clone)]
 enum SearchSelected {
     SOURCES,
     SCHOOL,
@@ -107,4 +125,39 @@ enum SearchSelected {
     PROCSAVE,
     DMGTYPE,
     TAGS,
+}
+
+impl SearchSelected {
+    fn from_usize (value: usize) -> Option<SearchSelected> {
+        use SearchSelected::*;
+        match value {
+            0 => Some(SOURCES),
+            1 => Some(SCHOOL),
+            2 => Some(CASTINGUNITS),
+            3 => Some(SHAPES),
+            4 => Some(LISTS),
+            5 => Some(PROCEFF),
+            6 => Some(PROCSAVE),
+            7 => Some(DMGTYPE),
+            8 => Some(TAGS),
+            _ => None
+        }
+    }
+}
+
+impl From<SearchSelected> for usize {
+    fn from(value: SearchSelected) -> Self {
+        use SearchSelected::*;
+        match value {
+            SOURCES => 0,
+            SCHOOL => 1,
+            CASTINGUNITS => 2,
+            SHAPES => 3,
+            LISTS => 4,
+            PROCEFF => 5,
+            PROCSAVE => 6,
+            DMGTYPE => 7,
+            TAGS => 8,
+        }
+    }
 }
