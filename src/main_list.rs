@@ -25,7 +25,6 @@ impl Page for MainList {
                 Constraint::Percentage(75)
             ]).split(layout);
 
-
         let spell_names = self.spells.values().map(|s| s.title.clone()).collect::<Vec<String>>();
         let list = List::new(spell_names.clone())
                     .block(Block::bordered().title("LIST TITLE"))

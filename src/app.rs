@@ -8,7 +8,7 @@ pub struct App {
     //TODO make sure in the end that this is actually used?
     //Spells hash could just be in 1st page
     //pub spells: HashMap<String, Spell>,
-    pub spell_enums: SpellEnums,
+    //pub spell_enums: SpellEnums,
     selected_tab: Tab,
     pages: Vec<Box<dyn Page>>,
 }
@@ -20,9 +20,9 @@ impl App {
             exit: false,
             db,
             //spells: spells.clone(),
-            spell_enums,
+            //spell_enums,
             selected_tab: Tab::new(vec!["Spells".to_string(), "Search".to_string()]),
-            pages: vec![Box::new(MainList::new(spells)), Box::new(Search::new())]
+            pages: vec![Box::new(MainList::new(spells)), Box::new(Search::new(spell_enums))]
         }
     }
 
