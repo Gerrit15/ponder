@@ -20,7 +20,6 @@ impl Search {
             pre_search: SpellEnums::new()
         }
     }
-    //TODO make a macro for this, shit sucks
     fn get_checked(&self) -> Vec<String> {
         let mut tabs: Vec<String> = vec![];
         tabs.push("[ CLEAR ]".to_owned());
