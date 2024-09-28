@@ -16,7 +16,7 @@ impl Search {
             spell_enums,
             popup: false,
             tags_state: ListState::default(),
-            selected: SearchSelected::TAGS,
+            selected: SearchSelected::SCHOOL,
             pre_search: SpellEnums::new()
         }
     }
@@ -28,108 +28,26 @@ impl Search {
         tabs.push("[ ALL ]".to_owned());
 
         use SearchSelected::*;
-        match self.selected {
-            SOURCES => {
-                for i in &self.spell_enums.sources {
-                    let check; 
-                    if self.pre_search.sources.contains(i) {
-                        check = "[+]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            SCHOOL => {
-                 for i in &self.spell_enums.school {
-                    let check; 
-                    if self.pre_search.school.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            CASTINGUNITS => {
-                 for i in &self.spell_enums.casting_units {
-                    let check; 
-                    if self.pre_search.casting_units.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            SHAPES => {
-                 for i in &self.spell_enums.shapes {
-                    let check; 
-                    if self.pre_search.shapes.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            LISTS => {
-                 for i in &self.spell_enums.lists{
-                    let check; 
-                    if self.pre_search.lists.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            PROCEFF => {
-                 for i in &self.spell_enums.proc_eff{
-                    let check; 
-                    if self.pre_search.proc_eff.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            PROCSAVE => {
-                 for i in &self.spell_enums.proc_save{
-                    let check; 
-                    if self.pre_search.proc_save.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            DMGTYPE => {
-                 for i in &self.spell_enums.damage_types{
-                    let check; 
-                    if self.pre_search.damage_types.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-            TAGS => {
-                 for i in &self.spell_enums.tags{
-                    let check; 
-                    if self.pre_search.tags.contains(i) {
-                        check = "[x]".to_owned();
-                    } else {
-                        check = "[ ]".to_owned();
-                    }
-                tabs.push(check + i) 
-                }
-            },
-        }
+        macro_rules! checks {
+            ($($variant:ident => $field:ident),*) => {
+                match self.selected {
+                    $($variant => {
+                        for i in &self.spell_enums.$field{
+                            let check; 
+                            if self.pre_search.$field.contains(i) {
+                                check = "[x]".to_owned();
+                            } else {
+                                check = "[ ]".to_owned();
+                            }
+                            tabs.push(check + i) 
+                        }
 
+                    },)*
+                    _ => ()
+                }
+            };
+        }
+        checks!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types);
         return tabs
     }
 }
@@ -137,7 +55,7 @@ impl Search {
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let area = popup_area(layout, 60, 20);
-        frame.render_widget(Paragraph::new(self.pre_search.tags.join(" ")), layout);
+        frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
         if self.popup {
             let checked_tabs = self.get_checked();
             //let tags = List::new(self.spell_enums.tags.clone());
