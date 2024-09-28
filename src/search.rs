@@ -156,8 +156,8 @@ impl Page for Search {
             KeyCode::Char('j') => if self.popup { self.tags_state.select_next() }
             KeyCode::Char('k') => if self.popup { self.tags_state.select_previous() }
             KeyCode::Enter => if self.popup {match self.tags_state.selected() {
-                //Some(0) => for i in self.pre_search.toggle_tag(&self.spell_enums.tags[i]),
                 Some(0) => self.pre_search.tags.clear(),
+                //Some(1) => set all to negative
                 Some(2) => self.pre_search.tags = self.spell_enums.tags.clone(),
                 Some(n) => self.pre_search.toggle_tag(&self.spell_enums.tags[n-3]),
                 _ => ()
