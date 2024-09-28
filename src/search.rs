@@ -6,7 +6,7 @@ pub struct Search {
     spell_enums: SpellEnums,
     popup: bool,
     tags_state: ListState,
-    t: String
+    pre_search: PreSearch,
 }
 
 impl Search {
@@ -15,7 +15,7 @@ impl Search {
             spell_enums,
             popup: false,
             tags_state: ListState::default(),
-            t: "".to_string()
+            pre_search: PreSearch::new()
         }
     }
 }
@@ -23,9 +23,23 @@ impl Search {
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let area = popup_area(layout, 60, 20);
-        frame.render_widget(Paragraph::new(self.t.clone()), layout);
+        frame.render_widget(Paragraph::new(self.pre_search.tags.join(" ")), layout);
         if self.popup {
-            let tags = List::new(self.spell_enums.tags.clone())
+            let checked_tabs: Vec<String> = {
+                let mut tabs = vec![];
+                for i in &self.spell_enums.tags {
+                    let check; 
+                    if self.pre_search.tags.contains(i) {
+                        check = "[x]".to_owned();
+                    } else {
+                        check = "[ ]".to_owned();
+                    }
+                tabs.push(check + i)
+                }
+                tabs
+            };
+            //let tags = List::new(self.spell_enums.tags.clone())
+            let tags = List::new(checked_tabs)
                 .block(Block::bordered().title("TAGS"))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">")
@@ -40,7 +54,7 @@ impl Page for Search {
             KeyCode::Char('j') => if self.popup { self.tags_state.select_next() }
             KeyCode::Char('k') => if self.popup { self.tags_state.select_previous() }
             KeyCode::Enter => if self.popup {match self.tags_state.selected() {
-                Some(n) =>  self.t += &self.spell_enums.tags[n].clone(),
+                Some(n) => self.pre_search.toggle_tag(&self.spell_enums.tags[n]),
                 _ => ()
             }}
             _ => ()
@@ -55,4 +69,24 @@ fn popup_area(area: Rect, percent_x: u16, percent_y: u16) -> Rect {
     let [area] = vertical.areas(area);
     let [area] = horizontal.areas(area);
     area
+}
+
+
+#[derive(Debug)]
+struct PreSearch {
+    tags: Vec<String>
+}
+
+impl PreSearch {
+    pub fn new() -> PreSearch {
+        PreSearch { tags: vec![] }
+    }
+
+    pub fn toggle_tag(&mut self, s:  &String) {
+        let index = self.tags.iter().position(|r| r == s);
+        match index {
+            Some(n) => {let _ = self.tags.remove(n);},
+            None => self.tags.push(s.clone())
+        };
+    }
 }
