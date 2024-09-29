@@ -7,7 +7,7 @@ pub struct Search {
     popup: bool,
     selected: SearchSelected,
     states: Vec<ListState>,
-    pre_search: SpellEnums,
+    pre_search: (SpellEnums, SpellEnums),
 }
 
 impl Search {
@@ -17,7 +17,7 @@ impl Search {
             popup: false,
             states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
-            pre_search: SpellEnums::new()
+            pre_search: (SpellEnums::new(), SpellEnums::new())
         }
     }
     fn get_checked(&self) -> Vec<String> {
@@ -33,8 +33,10 @@ impl Search {
                     $($variant => {
                         for i in &self.spell_enums.$field{
                             let check; 
-                            if self.pre_search.$field.contains(i) {
-                                check = "[x]".to_owned();
+                            if self.pre_search.0.$field.contains(i) {
+                                check = "[+]".to_owned();
+                            } else if self.pre_search.1.$field.contains(i) {
+                                check = "[-]".to_owned();
                             } else {
                                 check = "[ ]".to_owned();
                             }
@@ -97,10 +99,72 @@ impl Page for Search {
                 self.prev_select()
             }
             KeyCode::Enter => if self.popup {match self.states[self.selected.clone() as usize].selected() {
-                Some(0) => self.pre_search.tags.clear(),
-                //Some(1) => set all to negative
-                Some(2) => self.pre_search.tags = self.spell_enums.tags.clone(),
-                Some(n) => self.pre_search.toggle_tag(&self.spell_enums.tags[n-3]),
+                Some(0) => {
+                    use SearchSelected::*;
+                    macro_rules! all_off {
+                        ($($varient:ident => $field:ident),*) => {
+                            match self.selected {
+                                $($varient => {self.pre_search.0.$field.clear(); self.pre_search.1.$field.clear();},)*
+                            }
+                        }
+                    }
+                    all_off!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources)
+                },
+                Some(1) => {
+                    use SearchSelected::*;
+                    macro_rules! all_on {
+                        ($($varient:ident => $field:ident),*) => {
+                            match self.selected {
+                                $($varient => {
+                                    self.pre_search.1.$field = self.spell_enums.$field.clone();
+                                    self.pre_search.0.$field.clear();
+                                },)*
+                            }
+                        }
+                    }
+                    all_on!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
+
+                }
+                Some(2) => {
+                    use SearchSelected::*;
+                    macro_rules! all_on {
+                        ($($varient:ident => $field:ident),*) => {
+                            match self.selected {
+                                $($varient => {
+                                    self.pre_search.0.$field = self.spell_enums.$field.clone();
+                                    self.pre_search.1.$field.clear();
+                                },)*
+                            }
+                        }
+                    }
+                    all_on!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
+                },
+                Some(n) => {
+                    use SearchSelected::*;
+                    macro_rules! toggle_one {
+                        ($($varient:ident => $field:ident),*) => {
+                            match self.selected {
+                                $($varient => {
+                                    let s = &self.spell_enums.$field[n-3];
+                                    /*let index = self.pre_search.0.$field.iter().position(|r| r == s);
+                                    match index {
+                                        Some(n) => {let _ = self.pre_search.0.$field.remove(n);},
+                                        None => self.pre_search.0.$field.push(s.clone())
+                                    }*/
+                                    let indexes = (self.pre_search.0.$field.iter().position(|r| r == s), self.pre_search.1.$field.iter().position(|r| r == s));
+                                    match indexes {
+                                        (Some(n), None) => self.pre_search.1.$field.push(self.pre_search.0.$field.remove(n)),
+                                        (None, Some(n)) => {let _ = self.pre_search.1.$field.remove(n);},
+                                        (None, None) => self.pre_search.0.$field.push(s.clone()),
+                                        _ => ()
+                                    }
+
+                                })*
+                            }
+                        }
+                    }
+                    toggle_one!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
+                },
                 _ => ()
             }}
             _ => ()
