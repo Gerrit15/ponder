@@ -15,7 +15,7 @@ impl Search {
         Search {
             spell_enums,
             popup: false,
-            states: vec![ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default(), ListState::default()],
+            states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
             pre_search: SpellEnums::new()
         }
@@ -42,11 +42,10 @@ impl Search {
                         }
 
                     },)*
-                    _ => ()
                 }
             };
         }
-        checks!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types);
+        checks!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
         return tabs
     }
 
@@ -72,7 +71,7 @@ impl Page for Search {
             let checked_tabs = self.get_checked();
             //let tags = List::new(self.spell_enums.tags.clone());
             let list = List::new(checked_tabs)
-                .block(Block::bordered().title("TAGS"))
+                .block(Block::bordered().title(String::from(self.selected.clone())))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
                 .highlight_symbol(">")
                 .repeat_highlight_symbol(true);
@@ -85,11 +84,17 @@ impl Page for Search {
             KeyCode::Char(' ') => self.popup = !self.popup,
             KeyCode::Char('j') => {
                 if self.popup { self.states[self.selected.clone() as usize].select_next() }
-                else {self.next_select()}
+                //else {self.next_select()}
             }
             KeyCode::Char('k') => {
                 if self.popup { self.states[self.selected.clone() as usize].select_previous() }
-                else {self.prev_select()}
+                //else {self.prev_select()}
+            }
+            KeyCode::Char('l') => {
+                self.next_select()
+            }
+            KeyCode::Char('h') => {
+                self.prev_select()
             }
             KeyCode::Enter => if self.popup {match self.states[self.selected.clone() as usize].selected() {
                 Some(0) => self.pre_search.tags.clear(),
@@ -158,5 +163,23 @@ impl From<SearchSelected> for usize {
             DMGTYPE => 7,
             TAGS => 8,
         }
+    }
+}
+
+impl From<SearchSelected> for String {
+    fn from(value: SearchSelected) -> Self {
+        use SearchSelected::*;
+        let s = match value {
+            SOURCES => "Sources",
+            SCHOOL => "School",
+            CASTINGUNITS => "Casting Units",
+            SHAPES => "Shapes",
+            LISTS => "Lists",
+            PROCEFF => "Proc Effect",
+            PROCSAVE => "Proc Save",
+            DMGTYPE => "Damage Types",
+            TAGS => "Tags"
+        };
+        return s.to_string()
     }
 }
