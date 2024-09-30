@@ -7,7 +7,8 @@ pub struct Search {
     popup: bool,
     selected: SearchSelected,
     states: Vec<ListState>,
-    pre_search: (SpellEnums, SpellEnums),
+    pre_search: (PreSearch, PreSearch),
+    mode: SearchPageMode,
 }
 
 impl Search {
@@ -17,7 +18,8 @@ impl Search {
             popup: false,
             states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
-            pre_search: (SpellEnums::new(), SpellEnums::new())
+            pre_search: (PreSearch::new(), PreSearch::new()),
+            mode: SearchPageMode::POPUP
         }
     }
     fn get_checked(&self) -> Vec<String> {
@@ -146,11 +148,6 @@ impl Page for Search {
                             match self.selected {
                                 $($varient => {
                                     let s = &self.spell_enums.$field[n-3];
-                                    /*let index = self.pre_search.0.$field.iter().position(|r| r == s);
-                                    match index {
-                                        Some(n) => {let _ = self.pre_search.0.$field.remove(n);},
-                                        None => self.pre_search.0.$field.push(s.clone())
-                                    }*/
                                     let indexes = (self.pre_search.0.$field.iter().position(|r| r == s), self.pre_search.1.$field.iter().position(|r| r == s));
                                     match indexes {
                                         (Some(n), None) => self.pre_search.1.$field.push(self.pre_search.0.$field.remove(n)),
@@ -179,71 +176,4 @@ fn popup_area(area: Rect, percent_x: u16, percent_y: u16) -> Rect {
     let [area] = vertical.areas(area);
     let [area] = horizontal.areas(area);
     area
-}
-
-
-#[derive(Clone)]
-enum SearchSelected {
-    SOURCES,
-    SCHOOL,
-    CASTINGUNITS,
-    SHAPES,
-    LISTS,
-    PROCEFF,
-    PROCSAVE,
-    DMGTYPE,
-    TAGS,
-}
-
-impl SearchSelected {
-    fn from_usize (value: usize) -> Option<SearchSelected> {
-        use SearchSelected::*;
-        match value {
-            0 => Some(SOURCES),
-            1 => Some(SCHOOL),
-            2 => Some(CASTINGUNITS),
-            3 => Some(SHAPES),
-            4 => Some(LISTS),
-            5 => Some(PROCEFF),
-            6 => Some(PROCSAVE),
-            7 => Some(DMGTYPE),
-            8 => Some(TAGS),
-            _ => None
-        }
-    }
-}
-
-impl From<SearchSelected> for usize {
-    fn from(value: SearchSelected) -> Self {
-        use SearchSelected::*;
-        match value {
-            SOURCES => 0,
-            SCHOOL => 1,
-            CASTINGUNITS => 2,
-            SHAPES => 3,
-            LISTS => 4,
-            PROCEFF => 5,
-            PROCSAVE => 6,
-            DMGTYPE => 7,
-            TAGS => 8,
-        }
-    }
-}
-
-impl From<SearchSelected> for String {
-    fn from(value: SearchSelected) -> Self {
-        use SearchSelected::*;
-        let s = match value {
-            SOURCES => "Sources",
-            SCHOOL => "School",
-            CASTINGUNITS => "Casting Units",
-            SHAPES => "Shapes",
-            LISTS => "Lists",
-            PROCEFF => "Proc Effect",
-            PROCSAVE => "Proc Save",
-            DMGTYPE => "Damage Types",
-            TAGS => "Tags"
-        };
-        return s.to_string()
-    }
 }

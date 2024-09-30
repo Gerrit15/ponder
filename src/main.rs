@@ -6,6 +6,9 @@ mod page;
 mod main_list;
 mod search;
 mod tab;
+mod presearch;
+mod searchselected;
+mod searchpagemode;
 use sqlite::{self, Connection};
 use serde_json::Error;
 use serde::Deserialize;
@@ -21,6 +24,9 @@ use page::Page;
 use main_list::MainList;
 use search::Search;
 use tab::Tab;
+use searchselected::SearchSelected;
+use presearch::PreSearch;
+use searchpagemode::SearchPageMode;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
     layout::Rect,
