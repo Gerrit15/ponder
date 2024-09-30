@@ -4,7 +4,7 @@ use crate::*;
 
 pub struct Search {
     spell_enums: SpellEnums,
-    popup: bool,
+    //popup: bool,
     selected: SearchSelected,
     states: Vec<ListState>,
     pre_search: (PreSearch, PreSearch),
@@ -15,7 +15,7 @@ impl Search {
     pub fn new(spell_enums: SpellEnums) -> Search {
         Search {
             spell_enums,
-            popup: false,
+            //popup: false,
             states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
             pre_search: (PreSearch::new(), PreSearch::new()),
@@ -36,11 +36,11 @@ impl Search {
                         for i in &self.spell_enums.$field{
                             let check; 
                             if self.pre_search.0.$field.contains(i) {
-                                check = "[+]".to_owned();
+                                check = "[+] ".to_owned();
                             } else if self.pre_search.1.$field.contains(i) {
-                                check = "[-]".to_owned();
+                                check = "[-] ".to_owned();
                             } else {
-                                check = "[ ]".to_owned();
+                                check = "[ ] ".to_owned();
                             }
                             tabs.push(check + i) 
                         }
@@ -71,7 +71,8 @@ impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let area = popup_area(layout, 60, 20);
         //frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
-        if self.popup {
+
+        if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
             //let tags = List::new(self.spell_enums.tags.clone());
             let list = List::new(checked_tabs)
@@ -85,14 +86,17 @@ impl Page for Search {
     }
     fn key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Char(' ') => self.popup = !self.popup,
+            KeyCode::Char(' ') => {
+                match self.mode {
+                    SearchPageMode::TITLE => self.mode = SearchPageMode::POPUP,
+                    _ => self.mode = SearchPageMode::TITLE
+                }
+            },
             KeyCode::Char('j') => {
-                if self.popup { self.states[self.selected.clone() as usize].select_next() }
-                //else {self.next_select()}
+                if self.mode == SearchPageMode::POPUP { self.states[self.selected.clone() as usize].select_next() }
             }
             KeyCode::Char('k') => {
-                if self.popup { self.states[self.selected.clone() as usize].select_previous() }
-                //else {self.prev_select()}
+                if self.mode == SearchPageMode::POPUP { self.states[self.selected.clone() as usize].select_previous() }
             }
             KeyCode::Char('l') => {
                 self.next_select()
@@ -100,7 +104,7 @@ impl Page for Search {
             KeyCode::Char('h') => {
                 self.prev_select()
             }
-            KeyCode::Enter => if self.popup {match self.states[self.selected.clone() as usize].selected() {
+            KeyCode::Enter => if self.mode == SearchPageMode::POPUP {match self.states[self.selected.clone() as usize].selected() {
                 Some(0) => {
                     use SearchSelected::*;
                     macro_rules! all_off {
