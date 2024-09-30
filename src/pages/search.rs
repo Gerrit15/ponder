@@ -19,7 +19,7 @@ impl Search {
             states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
             pre_search: (PreSearch::new(), PreSearch::new()),
-            mode: SearchPageMode::POPUP
+            mode: SearchPageMode::NONE,
         }
     }
     fn get_checked(&self) -> Vec<String> {
@@ -67,25 +67,12 @@ impl Search {
     }
     fn popup_key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Char(' ') => {
-                match self.mode {
-                    SearchPageMode::TITLE => self.mode = SearchPageMode::POPUP,
-                    _ => self.mode = SearchPageMode::TITLE
-                }
-            },
-            KeyCode::Char('j') => {
-                if self.mode == SearchPageMode::POPUP { self.states[self.selected.clone() as usize].select_next() }
-            }
-            KeyCode::Char('k') => {
-                if self.mode == SearchPageMode::POPUP { self.states[self.selected.clone() as usize].select_previous() }
-            }
-            KeyCode::Char('l') => {
-                self.next_select()
-            }
-            KeyCode::Char('h') => {
-                self.prev_select()
-            }
-            KeyCode::Enter => if self.mode == SearchPageMode::POPUP {match self.states[self.selected.clone() as usize].selected() {
+            KeyCode::Enter => self.mode = SearchPageMode::NONE,
+            KeyCode::Char('j') => self.states[self.selected.clone() as usize].select_next(),
+            KeyCode::Char('k') => self.states[self.selected.clone() as usize].select_previous(),
+            KeyCode::Char('l') => self.next_select(),
+            KeyCode::Char('h') => self.prev_select(),
+            KeyCode::Char(' ')=> match self.states[self.selected.clone() as usize].selected() {
                 Some(0) => {
                     use SearchSelected::*;
                     macro_rules! all_off {
@@ -148,7 +135,22 @@ impl Search {
                     toggle_one!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
                 },
                 _ => ()
-            }}
+            }
+            _ => ()
+        }
+    }
+    fn title_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char(c) => self.pre_search.0.title += &c.to_string(),
+            KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.0.title.len() != 0 {self.pre_search.0.title.remove(self.pre_search.0.title.len()-1);};},
+            KeyCode::Esc | KeyCode::Enter => {self.mode = SearchPageMode::NONE},
+            _ => ()
+        }
+    }
+    fn none_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char('t') => {self.mode = SearchPageMode::TITLE},
+            KeyCode::Char('p') => {self.mode = SearchPageMode::POPUP},
             _ => ()
         }
     }
@@ -157,11 +159,15 @@ impl Search {
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         let area = popup_area(layout, 60, 20);
-        //frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
+        let bar = match self.mode {
+            SearchPageMode::TITLE => "|",
+            _ => ""
+        };
+        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.0.title.clone() + bar).block(Block::bordered().title("Params")), layout);
+//        frame.render_widget(., area)
 
         if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
-            //let tags = List::new(self.spell_enums.tags.clone());
             let list = List::new(checked_tabs)
                 .block(Block::bordered().title(String::from(self.selected.clone())))
                 .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
@@ -173,8 +179,9 @@ impl Page for Search {
     }
     fn key(&mut self, key: KeyCode) {
         match self.mode {
+            SearchPageMode::NONE => self.none_key(key),
             SearchPageMode::POPUP => self.popup_key(key),
-            _ => ()
+            SearchPageMode::TITLE => self.title_key(key),
         }
     }
 }
