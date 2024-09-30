@@ -65,26 +65,7 @@ impl Search {
         else {u -= 1}
         self.selected = SearchSelected::from_usize(u).unwrap();
     }
-}
-
-impl Page for Search {
-    fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
-        let area = popup_area(layout, 60, 20);
-        //frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
-
-        if self.mode == SearchPageMode::POPUP{
-            let checked_tabs = self.get_checked();
-            //let tags = List::new(self.spell_enums.tags.clone());
-            let list = List::new(checked_tabs)
-                .block(Block::bordered().title(String::from(self.selected.clone())))
-                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-                .highlight_symbol(">")
-                .repeat_highlight_symbol(true);
-            frame.render_widget(Clear, area);
-            frame.render_stateful_widget(list, area, &mut self.states[self.selected.clone() as usize]);
-        }
-    }
-    fn key(&mut self, key: KeyCode) {
+    fn popup_key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Char(' ') => {
                 match self.mode {
@@ -168,6 +149,31 @@ impl Page for Search {
                 },
                 _ => ()
             }}
+            _ => ()
+        }
+    }
+}
+
+impl Page for Search {
+    fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
+        let area = popup_area(layout, 60, 20);
+        //frame.render_widget(Paragraph::new(self.pre_search.school.join(" ")), layout);
+
+        if self.mode == SearchPageMode::POPUP{
+            let checked_tabs = self.get_checked();
+            //let tags = List::new(self.spell_enums.tags.clone());
+            let list = List::new(checked_tabs)
+                .block(Block::bordered().title(String::from(self.selected.clone())))
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">")
+                .repeat_highlight_symbol(true);
+            frame.render_widget(Clear, area);
+            frame.render_stateful_widget(list, area, &mut self.states[self.selected.clone() as usize]);
+        }
+    }
+    fn key(&mut self, key: KeyCode) {
+        match self.mode {
+            SearchPageMode::POPUP => self.popup_key(key),
             _ => ()
         }
     }
