@@ -7,7 +7,7 @@ pub struct Search {
     //popup: bool,
     selected: SearchSelected,
     states: Vec<ListState>,
-    pre_search: (PreSearch, PreSearch),
+    pre_search: PreSearch,
     mode: SearchPageMode,
 }
 
@@ -18,7 +18,7 @@ impl Search {
             //popup: false,
             states: vec![ListState::default(); 9],
             selected: SearchSelected::SCHOOL,
-            pre_search: (PreSearch::new(), PreSearch::new()),
+            pre_search: PreSearch::new(),
             mode: SearchPageMode::NONE,
         }
     }
@@ -35,9 +35,9 @@ impl Search {
                     $($variant => {
                         for i in &self.spell_enums.$field{
                             let check; 
-                            if self.pre_search.0.$field.contains(i) {
+                            if self.pre_search.$field.0.contains(i) {
                                 check = "[+] ".to_owned();
-                            } else if self.pre_search.1.$field.contains(i) {
+                            } else if self.pre_search.$field.1.contains(i) {
                                 check = "[-] ".to_owned();
                             } else {
                                 check = "[ ] ".to_owned();
@@ -78,7 +78,7 @@ impl Search {
                     macro_rules! all_off {
                         ($($varient:ident => $field:ident),*) => {
                             match self.selected {
-                                $($varient => {self.pre_search.0.$field.clear(); self.pre_search.1.$field.clear();},)*
+                                $($varient => {self.pre_search.$field.0.clear(); self.pre_search.$field.1.clear();},)*
                             }
                         }
                     }
@@ -90,8 +90,8 @@ impl Search {
                         ($($varient:ident => $field:ident),*) => {
                             match self.selected {
                                 $($varient => {
-                                    self.pre_search.1.$field = self.spell_enums.$field.clone();
-                                    self.pre_search.0.$field.clear();
+                                    self.pre_search.$field.1 = self.spell_enums.$field.clone();
+                                    self.pre_search.$field.0.clear();
                                 },)*
                             }
                         }
@@ -105,8 +105,8 @@ impl Search {
                         ($($varient:ident => $field:ident),*) => {
                             match self.selected {
                                 $($varient => {
-                                    self.pre_search.0.$field = self.spell_enums.$field.clone();
-                                    self.pre_search.1.$field.clear();
+                                    self.pre_search.$field.0 = self.spell_enums.$field.clone();
+                                    self.pre_search.$field.1.clear();
                                 },)*
                             }
                         }
@@ -120,11 +120,11 @@ impl Search {
                             match self.selected {
                                 $($varient => {
                                     let s = &self.spell_enums.$field[n-3];
-                                    let indexes = (self.pre_search.0.$field.iter().position(|r| r == s), self.pre_search.1.$field.iter().position(|r| r == s));
+                                    let indexes = (self.pre_search.$field.0.iter().position(|r| r == s), self.pre_search.$field.1.iter().position(|r| r == s));
                                     match indexes {
-                                        (Some(n), None) => self.pre_search.1.$field.push(self.pre_search.0.$field.remove(n)),
-                                        (None, Some(n)) => {let _ = self.pre_search.1.$field.remove(n);},
-                                        (None, None) => self.pre_search.0.$field.push(s.clone()),
+                                        (Some(n), None) => self.pre_search.$field.1.push(self.pre_search.$field.0.remove(n)),
+                                        (None, Some(n)) => {let _ = self.pre_search.$field.1.remove(n);},
+                                        (None, None) => self.pre_search.$field.0.push(s.clone()),
                                         _ => ()
                                     }
 
@@ -141,8 +141,8 @@ impl Search {
     }
     fn title_key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Char(c) => self.pre_search.0.title += &c.to_string(),
-            KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.0.title.len() != 0 {self.pre_search.0.title.remove(self.pre_search.0.title.len()-1);};},
+            KeyCode::Char(c) => self.pre_search.title += &c.to_string(),
+            KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.title.len() != 0 {self.pre_search.title.remove(self.pre_search.title.len()-1);};},
             KeyCode::Esc | KeyCode::Enter => {self.mode = SearchPageMode::NONE},
             _ => ()
         }
@@ -163,7 +163,7 @@ impl Page for Search {
             SearchPageMode::TITLE => "|",
             _ => ""
         };
-        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.0.title.clone() + bar).block(Block::bordered().title("Params")), layout);
+        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered().title("Params")), layout);
 //        frame.render_widget(., area)
 
         if self.mode == SearchPageMode::POPUP{

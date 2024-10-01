@@ -1,28 +1,28 @@
 pub struct PreSearch {
-    pub sources: Vec<String>,
-    pub school: Vec<String>,
-    pub casting_units: Vec<String>,
-    pub shapes: Vec<String>,
-    pub lists: Vec<String>,
-    pub proc_eff: Vec<String>,
-    pub proc_save: Vec<String>,
-    pub damage_types: Vec<String>,
-    pub tags: Vec<String>,
+    pub sources: (Vec<String>, Vec<String>),
+    pub school: (Vec<String>, Vec<String>),
+    pub casting_units: (Vec<String>, Vec<String>),
+    pub shapes: (Vec<String>, Vec<String>),
+    pub lists: (Vec<String>, Vec<String>),
+    pub proc_eff: (Vec<String>, Vec<String>),
+    pub proc_save: (Vec<String>, Vec<String>),
+    pub damage_types: (Vec<String>, Vec<String>),
+    pub tags: (Vec<String>, Vec<String>),
     pub title: String,
 }
 
 impl PreSearch {
     pub fn new() -> PreSearch{
         PreSearch { 
-            sources: vec![], 
-            school: vec![], 
-            casting_units: vec![], 
-            shapes: vec![], 
-            lists: vec![], 
-            proc_eff: vec![], 
-            proc_save: vec![], 
-            damage_types: vec![], 
-            tags: vec![],
+            sources: (vec![], vec![]), 
+            school: (vec![], vec![]), 
+            casting_units: (vec![], vec![]), 
+            shapes: (vec![], vec![]), 
+            lists: (vec![], vec![]), 
+            proc_eff: (vec![], vec![]), 
+            proc_save: (vec![], vec![]), 
+            damage_types: (vec![], vec![]), 
+            tags: (vec![], vec![]),
             title: String::new(),
         }
     }
