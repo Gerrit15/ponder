@@ -1,4 +1,4 @@
-use ratatui::{prelude::{Constraint, Layout}, layout::Flex, widgets::{Clear, ListState, List}, style::{Style, Modifier}};
+use ratatui::{prelude::{Constraint, Layout, Direction, Alignment}, layout::Flex, widgets::{Clear, ListState, List}, style::{Style, Modifier}};
 
 use crate::*;
 
@@ -163,8 +163,46 @@ impl Page for Search {
             SearchPageMode::TITLE => "|",
             _ => ""
         };
-        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered().title("Params")), layout);
-//        frame.render_widget(., area)
+        let inner_layout = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints(vec![
+                Constraint::Percentage(7),
+                Constraint::Percentage(7),
+                Constraint::Min(0),
+            ]).split(layout);
+        let top_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(35),
+                Constraint::Min(0)
+            ]).split(inner_layout[0]);
+        let mid_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(6),
+                Constraint::Percentage(6),
+                Constraint::Percentage(6),
+                Constraint::Percentage(8),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(12),
+                Constraint::Percentage(7),
+                Constraint::Percentage(15),
+                Constraint::Min(0),
+            ]).split(inner_layout[1]);
+
+        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
+        frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
+        frame.render_widget(Paragraph::new("V: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[0]);
+        frame.render_widget(Paragraph::new("S: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[1]);
+        frame.render_widget(Paragraph::new("M: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[2]);
+        frame.render_widget(Paragraph::new("Ritual: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[3]);
+        frame.render_widget(Paragraph::new("Component Cost: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[4]);
+        frame.render_widget(Paragraph::new("Higher Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[5]);
+        frame.render_widget(Paragraph::new("Concentration: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[6]);
+        frame.render_widget(Paragraph::new("Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[7]);
+        frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
+        frame.render_widget(Paragraph::new("Duration: [ ] [       ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
         if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
