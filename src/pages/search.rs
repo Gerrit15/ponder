@@ -168,6 +168,7 @@ impl Page for Search {
             .constraints(vec![
                 Constraint::Percentage(7),
                 Constraint::Percentage(7),
+                Constraint::Percentage(5),
                 Constraint::Min(0),
             ]).split(layout);
         let top_row = Layout::default()
@@ -190,9 +191,20 @@ impl Page for Search {
                 Constraint::Percentage(15),
                 Constraint::Min(0),
             ]).split(inner_layout[1]);
+        let mid_low_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(31),
+                Constraint::Percentage(18),
+                Constraint::Percentage(16),
+                Constraint::Percentage(16),
+                Constraint::Percentage(12),
+                Constraint::Percentage(31)
+            ]).split(inner_layout[2]);
 
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
+
         frame.render_widget(Paragraph::new("V: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[0]);
         frame.render_widget(Paragraph::new("S: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[1]);
         frame.render_widget(Paragraph::new("M: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[2]);
@@ -203,6 +215,12 @@ impl Page for Search {
         frame.render_widget(Paragraph::new("Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[7]);
         frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
         frame.render_widget(Paragraph::new("Duration: [ ] [       ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
+
+
+        frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
+        frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
+        frame.render_widget(Paragraph::new("Proc: [       ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[3]);
+        frame.render_widget(Paragraph::new("Source: [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[4]);
 
         if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
