@@ -6,6 +6,7 @@ pub struct Search {
     spell_enums: SpellEnums,
     //popup: bool,
     selected: SearchSelected,
+    damage_type_selector: ListState,
     states: Vec<ListState>,
     pre_search: PreSearch,
     mode: SearchPageMode,
@@ -17,6 +18,7 @@ impl Search {
             spell_enums,
             //popup: false,
             states: vec![ListState::default(); 9],
+            damage_type_selector: ListState::default(),
             selected: SearchSelected::SCHOOL,
             pre_search: PreSearch::new(),
             mode: SearchPageMode::NONE,
@@ -163,12 +165,19 @@ impl Page for Search {
             SearchPageMode::TITLE => "|",
             _ => ""
         };
+        let damage_list = List::new(self.spell_enums.damage_types.clone())
+                .block(Block::bordered().title(String::from("Damage Types")))
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">")
+                .repeat_highlight_symbol(true);
+
         let inner_layout = Layout::default()
             .direction(Direction::Vertical)
             .constraints(vec![
                 Constraint::Percentage(7),
                 Constraint::Percentage(7),
-                Constraint::Percentage(5),
+                Constraint::Percentage(7),
+                Constraint::Percentage(55),
                 Constraint::Min(0),
             ]).split(layout);
         let top_row = Layout::default()
@@ -201,6 +210,11 @@ impl Page for Search {
                 Constraint::Percentage(12),
                 Constraint::Percentage(31)
             ]).split(inner_layout[2]);
+        let select_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(33)
+            ]).split(inner_layout[3]);
 
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
@@ -216,11 +230,12 @@ impl Page for Search {
         frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
         frame.render_widget(Paragraph::new("Duration: [ ] [       ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
-
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
         frame.render_widget(Paragraph::new("Proc: [       ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[3]);
         frame.render_widget(Paragraph::new("Source: [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[4]);
+
+        frame.render_stateful_widget(damage_list, select_row[0], &mut self.damage_type_selector);
 
         if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
@@ -235,9 +250,10 @@ impl Page for Search {
     }
     fn key(&mut self, key: KeyCode) {
         match self.mode {
-            SearchPageMode::NONE => self.none_key(key),
+            /*SearchPageMode::NONE => self.none_key(key),
             SearchPageMode::POPUP => self.popup_key(key),
-            SearchPageMode::TITLE => self.title_key(key),
+            SearchPageMode::TITLE => self.title_key(key),*/
+            _ => ()
         }
     }
 }
