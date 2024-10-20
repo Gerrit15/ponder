@@ -5,7 +5,7 @@ use crate::*;
 pub struct Search {
     spell_enums: SpellEnums,
     //popup: bool,
-    selected: SearchSelected,
+    //selected: SearchSelected,
     damage_type_selector: ListState,
     states: Vec<ListState>,
     pre_search: PreSearch,
@@ -19,12 +19,12 @@ impl Search {
             //popup: false,
             states: vec![ListState::default(); 9],
             damage_type_selector: ListState::default(),
-            selected: SearchSelected::SCHOOL,
+            //selected: SearchSelected::SCHOOL,
             pre_search: PreSearch::new(),
             mode: SearchPageMode::NONE,
         }
     }
-    fn get_checked(&self) -> Vec<String> {
+    fn get_checked(&self, selected: SearchSelected) -> Vec<String> {
         let mut tabs: Vec<String> = vec![];
         tabs.push("[ CLEAR ]".to_owned());
         tabs.push("[ NONE ]".to_owned());
@@ -33,7 +33,7 @@ impl Search {
         use SearchSelected::*;
         macro_rules! checks {
             ($($variant:ident => $field:ident),*) => {
-                match self.selected {
+                match selected {
                     $($variant => {
                         for i in &self.spell_enums.$field{
                             let check; 
@@ -55,7 +55,7 @@ impl Search {
         return tabs
     }
 
-    fn next_select(&mut self) {
+/*    fn next_select(&mut self) {
         let mut u = usize::from(self.selected.clone());
         if u == 8 {u = 0}
         else {u += 1}
@@ -155,7 +155,7 @@ impl Search {
             KeyCode::Char('p') => {self.mode = SearchPageMode::POPUP},
             _ => ()
         }
-    }
+    }*/
 }
 
 impl Page for Search {
@@ -165,11 +165,21 @@ impl Page for Search {
             SearchPageMode::TITLE => "|",
             _ => ""
         };
-        let damage_list = List::new(self.spell_enums.damage_types.clone())
-                .block(Block::bordered().title(String::from("Damage Types")))
-                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-                .highlight_symbol(">")
-                .repeat_highlight_symbol(true);
+        let damage_list = List::new(self.get_checked(SearchSelected::DMGTYPE))
+            .block(Block::bordered().title(String::from("Damage Types")))
+            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+            .highlight_symbol(">")
+            .repeat_highlight_symbol(true);
+        let tag_list = List::new(self.get_checked(SearchSelected::TAGS))
+            .block(Block::bordered().title(String::from("Tags")))
+            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+            .highlight_symbol(">")
+            .repeat_highlight_symbol(true);
+        let spell_list = List::new(self.get_checked(SearchSelected::LISTS))
+            .block(Block::bordered().title(String::from("Spell Lists")))
+            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+            .highlight_symbol(">")
+            .repeat_highlight_symbol(true);
 
         let inner_layout = Layout::default()
             .direction(Direction::Vertical)
@@ -178,6 +188,7 @@ impl Page for Search {
                 Constraint::Percentage(7),
                 Constraint::Percentage(7),
                 Constraint::Percentage(55),
+                Constraint::Percentage(7),
                 Constraint::Min(0),
             ]).split(layout);
         let top_row = Layout::default()
@@ -213,8 +224,16 @@ impl Page for Search {
         let select_row = Layout::default()
             .direction(Direction::Horizontal)
             .constraints(vec![
-                Constraint::Percentage(33)
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
             ]).split(inner_layout[3]);
+        let bottom_row = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![
+                Constraint::Percentage(50),
+                Constraint::Min(0)
+            ]).split(inner_layout[4]);
 
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
@@ -236,8 +255,13 @@ impl Page for Search {
         frame.render_widget(Paragraph::new("Source: [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[4]);
 
         frame.render_stateful_widget(damage_list, select_row[0], &mut self.damage_type_selector);
+        frame.render_stateful_widget(tag_list, select_row[1], &mut self.damage_type_selector);
+        frame.render_stateful_widget(spell_list, select_row[2], &mut self.damage_type_selector);
 
-        if self.mode == SearchPageMode::POPUP{
+        frame.render_widget(Paragraph::new("SEARCH").centered().block(Block::bordered()), bottom_row[0]);
+        frame.render_widget(Paragraph::new("CLEAR").centered().block(Block::bordered()), bottom_row[1]);
+
+        /*if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
             let list = List::new(checked_tabs)
                 .block(Block::bordered().title(String::from(self.selected.clone())))
@@ -246,7 +270,7 @@ impl Page for Search {
                 .repeat_highlight_symbol(true);
             frame.render_widget(Clear, area);
             frame.render_stateful_widget(list, area, &mut self.states[self.selected.clone() as usize]);
-        }
+        }*/
     }
     fn key(&mut self, key: KeyCode) {
         match self.mode {
