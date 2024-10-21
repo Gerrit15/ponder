@@ -5,11 +5,10 @@ use crate::*;
 pub struct Search {
     spell_enums: SpellEnums,
     //popup: bool,
-    selected: SearchSelected,
     damage_type_selector: ListState,
     states: Vec<ListState>,
     pre_search: PreSearch,
-    mode: SearchPageMode,
+    selected: SearchSelected,
 }
 
 impl Search {
@@ -19,9 +18,8 @@ impl Search {
             //popup: false,
             states: vec![ListState::default(); 9],
             damage_type_selector: ListState::default(),
-            selected: SearchSelected::LISTS,
+            selected: SearchSelected::NONE,
             pre_search: PreSearch::new(),
-            mode: SearchPageMode::NONE,
         }
     }
     fn get_checked(&self, selected: SearchSelected) -> Vec<String> {
@@ -48,11 +46,12 @@ impl Search {
                         }
 
                     },)*
+                    NONE => (),
                     _ => ()
                 }
             };
         }
-        checks!(TAGS => tags, SCHOOL => school, CASTINGUNITS => casting_units, SHAPES => shapes, LISTS => lists, PROCEFF => proc_eff, PROCSAVE => proc_save, DMGTYPE => damage_types, SOURCES => sources);
+        checks!(TAGS => tags, DMGTYPE => damage_types, LISTS => lists);
         return tabs
     }
 
@@ -142,30 +141,45 @@ impl Search {
             _ => ()
         }
     }
+    */
+    fn none_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Tab => self.selected = SearchSelected::TITLE,
+            _ => ()
+        }
+    }
     fn title_key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Char(c) => self.pre_search.title += &c.to_string(),
             KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.title.len() != 0 {self.pre_search.title.remove(self.pre_search.title.len()-1);};},
-            KeyCode::Esc | KeyCode::Enter => {self.mode = SearchPageMode::NONE},
+            KeyCode::Esc | KeyCode::Enter => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::CONTENT,
             _ => ()
         }
     }
-    fn none_key(&mut self, key: KeyCode) {
+    fn content_key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Char('t') => {self.mode = SearchPageMode::TITLE},
-            KeyCode::Char('p') => {self.mode = SearchPageMode::POPUP},
+            KeyCode::Char(c) => self.pre_search.content += &c.to_string(),
+            KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.content.len() != 0 {self.pre_search.content.remove(self.pre_search.content.len()-1);};},
+            KeyCode::Esc | KeyCode::Enter => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::TITLE,
             _ => ()
         }
-    }*/
+    }
 }
 
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         //let area = popup_area(layout, 60, 20);
-        let bar = match self.mode {
-            SearchPageMode::TITLE => "|",
+        let title_bar = match self.selected {
+            SearchSelected::TITLE => "|",
             _ => ""
         };
+        let content_bar = match self.selected {
+            SearchSelected::CONTENT=> "|",
+            _ => ""
+        };
+
         let damage_list = List::new(self.get_checked(SearchSelected::DMGTYPE))
             .block(get_style(&self.selected, SearchSelected::DMGTYPE, true))
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
@@ -237,8 +251,8 @@ impl Page for Search {
             ]).split(inner_layout[4]);
 
 
-        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
-        frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
+        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + title_bar).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
+        frame.render_widget(Paragraph::new("Content: ".to_string() + &self.pre_search.content.clone() + content_bar).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
         frame.render_widget(Paragraph::new("V: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[0]);
         frame.render_widget(Paragraph::new("S: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[1]);
@@ -275,10 +289,11 @@ impl Page for Search {
         }*/
     }
     fn key(&mut self, key: KeyCode) {
-        match self.mode {
-            /*SearchPageMode::NONE => self.none_key(key),
-            SearchPageMode::POPUP => self.popup_key(key),
-            SearchPageMode::TITLE => self.title_key(key),*/
+        match self.selected {
+            SearchSelected::NONE => self.none_key(key),
+            /*SearchPageMode::POPUP => self.popup_key(key),*/
+            SearchSelected::TITLE => self.title_key(key),
+            SearchSelected::CONTENT => self.content_key(key),
             _ => ()
         }
     }

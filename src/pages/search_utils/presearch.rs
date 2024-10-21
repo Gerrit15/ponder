@@ -9,6 +9,7 @@ pub struct PreSearch {
     pub damage_types: (Vec<String>, Vec<String>),
     pub tags: (Vec<String>, Vec<String>),
     pub title: String,
+    pub content: String,
 }
 
 impl PreSearch {
@@ -24,6 +25,7 @@ impl PreSearch {
             damage_types: (vec![], vec![]), 
             tags: (vec![], vec![]),
             title: String::new(),
+            content: String::new(),
         }
     }
 }
