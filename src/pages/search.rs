@@ -5,7 +5,7 @@ use crate::*;
 pub struct Search {
     spell_enums: SpellEnums,
     //popup: bool,
-    //selected: SearchSelected,
+    selected: SearchSelected,
     damage_type_selector: ListState,
     states: Vec<ListState>,
     pre_search: PreSearch,
@@ -19,7 +19,7 @@ impl Search {
             //popup: false,
             states: vec![ListState::default(); 9],
             damage_type_selector: ListState::default(),
-            //selected: SearchSelected::SCHOOL,
+            selected: SearchSelected::LISTS,
             pre_search: PreSearch::new(),
             mode: SearchPageMode::NONE,
         }
@@ -48,6 +48,7 @@ impl Search {
                         }
 
                     },)*
+                    _ => ()
                 }
             };
         }
@@ -160,23 +161,23 @@ impl Search {
 
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
-        let area = popup_area(layout, 60, 20);
+        //let area = popup_area(layout, 60, 20);
         let bar = match self.mode {
             SearchPageMode::TITLE => "|",
             _ => ""
         };
         let damage_list = List::new(self.get_checked(SearchSelected::DMGTYPE))
-            .block(Block::bordered().title(String::from("Damage Types")))
+            .block(get_style(&self.selected, SearchSelected::DMGTYPE, true))
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .highlight_symbol(">")
             .repeat_highlight_symbol(true);
         let tag_list = List::new(self.get_checked(SearchSelected::TAGS))
-            .block(Block::bordered().title(String::from("Tags")))
+            .block(get_style(&self.selected, SearchSelected::TAGS, true))
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .highlight_symbol(">")
             .repeat_highlight_symbol(true);
         let spell_list = List::new(self.get_checked(SearchSelected::LISTS))
-            .block(Block::bordered().title(String::from("Spell Lists")))
+            .block(get_style(&self.selected, SearchSelected::LISTS, true))
             .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
             .highlight_symbol(">")
             .repeat_highlight_symbol(true);
@@ -235,6 +236,7 @@ impl Page for Search {
                 Constraint::Min(0)
             ]).split(inner_layout[4]);
 
+
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + bar).block(Block::bordered()), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string()).block(Block::bordered()), top_row[1]);
 
@@ -289,4 +291,15 @@ fn popup_area(area: Rect, percent_x: u16, percent_y: u16) -> Rect {
     let [area] = vertical.areas(area);
     let [area] = horizontal.areas(area);
     area
+}
+
+fn get_style(selected: &SearchSelected, cur: SearchSelected, titled: bool) -> Block {
+    let mut b = Block::bordered();
+    if titled {
+        b = b.title(String::from(cur.clone()))
+    }
+    if usize::from(selected.clone()) == usize::from(cur) {
+        return b.style(Style::default().add_modifier(Modifier::REVERSED))
+    }
+    return b
 }
