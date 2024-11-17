@@ -10,6 +10,8 @@ pub struct PreSearch {
     pub tags: (Vec<String>, Vec<String>),
     pub title: String,
     pub content: String,
+    pub vsm: (Option<bool>, Option<bool>, Option<bool>),
+    pub ritual: Option<bool>,
 }
 
 impl PreSearch {
@@ -26,6 +28,8 @@ impl PreSearch {
             tags: (vec![], vec![]),
             title: String::new(),
             content: String::new(),
+            vsm: (None, None, None),
+            ritual: None,
         }
     }
 }
