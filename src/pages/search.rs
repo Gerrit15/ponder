@@ -6,7 +6,7 @@ pub struct Search {
     spell_enums: SpellEnums,
     //popup: bool,
     damage_type_selector: ListState,
-    states: Vec<ListState>,
+    //states: Vec<ListState>,
     pre_search: PreSearch,
     selected: SearchSelected,
 }
@@ -16,7 +16,7 @@ impl Search {
         Search {
             spell_enums,
             //popup: false,
-            states: vec![ListState::default(); 9],
+            //states: vec![ListState::default(); 9],
             damage_type_selector: ListState::default(),
             selected: SearchSelected::NONE,
             pre_search: PreSearch::new(),
@@ -55,7 +55,8 @@ impl Search {
         return tabs
     }
 
-/*    fn next_select(&mut self) {
+/*
+    fn next_select(&mut self) {
         let mut u = usize::from(self.selected.clone());
         if u == 8 {u = 0}
         else {u += 1}
@@ -141,7 +142,7 @@ impl Search {
             _ => ()
         }
     }
-    */
+*/
     fn none_key(&mut self, key: KeyCode) {
         match key {
             KeyCode::Tab => self.selected = SearchSelected::TITLE,
@@ -162,6 +163,73 @@ impl Search {
             KeyCode::Char(c) => self.pre_search.content += &c.to_string(),
             KeyCode::Delete | KeyCode::Backspace => {if self.pre_search.content.len() != 0 {self.pre_search.content.remove(self.pre_search.content.len()-1);};},
             KeyCode::Esc | KeyCode::Enter => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::V,
+            _ => ()
+        }
+    }
+
+    fn v_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.vsm.0 {
+                    Some(b) => {
+                        if *b {self.pre_search.vsm.0 = Some(false)}
+                        else {self.pre_search.vsm.0 = None}
+                    },
+                    None => {self.pre_search.vsm.0 = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::S,
+            _ => ()
+        }
+    }
+
+    fn s_key(&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.vsm.1 {
+                    Some(b) => {
+                        if *b {self.pre_search.vsm.1 = Some(false)}
+                        else {self.pre_search.vsm.1 = None}
+                    },
+                    None => {self.pre_search.vsm.1 = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::M,
+            _ => ()
+        }
+    }
+    fn m_key(&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.vsm.2 {
+                    Some(b) => {
+                        if *b {self.pre_search.vsm.2 = Some(false)}
+                        else {self.pre_search.vsm.2 = None}
+                    },
+                    None => {self.pre_search.vsm.2 = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::RITUAL,
+            _ => ()
+        }
+    }
+
+    fn ritual_key(&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.ritual {
+                    Some(b) => {
+                        if *b {self.pre_search.ritual = Some(false)}
+                        else {self.pre_search.ritual = None}
+                    },
+                    None => {self.pre_search.ritual = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
             KeyCode::Tab => self.selected = SearchSelected::TITLE,
             _ => ()
         }
@@ -178,6 +246,38 @@ impl Page for Search {
         let content_bar = match self.selected {
             SearchSelected::CONTENT=> "|",
             _ => ""
+        };
+
+        let v_content = match self.pre_search.vsm.0 {
+            Some(b) => {
+                if b {"V: [+]"}
+                else {"V: [-]"}
+            },
+            None => "V: [ ]"
+        };
+
+        let s_content = match self.pre_search.vsm.1 {
+            Some(b) => {
+                if b {"S: [+]"}
+                else {"S: [-]"}
+            },
+            None => "S: [ ]"
+        };
+
+        let m_content = match self.pre_search.vsm.2 {
+            Some(b) => {
+                if b {"M: [+]"}
+                else {"M: [-]"}
+            },
+            None => "M: [ ]"
+        };
+
+        let ritual_content = match self.pre_search.ritual {
+            Some(b) => {
+                if b {"Ritual: [+]"}
+                else {"Ritual: [-]"}
+            },
+            None => "Ritual: [ ]"
         };
 
         let damage_list = List::new(self.get_checked(SearchSelected::DMGTYPE))
@@ -254,10 +354,10 @@ impl Page for Search {
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + title_bar).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string() + &self.pre_search.content.clone() + content_bar).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
-        frame.render_widget(Paragraph::new("V: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[0]);
-        frame.render_widget(Paragraph::new("S: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[1]);
-        frame.render_widget(Paragraph::new("M: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[2]);
-        frame.render_widget(Paragraph::new("Ritual: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[3]);
+        frame.render_widget(Paragraph::new(v_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::V, false)), mid_row[0]);
+        frame.render_widget(Paragraph::new(s_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::S, false)), mid_row[1]);
+        frame.render_widget(Paragraph::new(m_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::M, false)), mid_row[2]);
+        frame.render_widget(Paragraph::new(ritual_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::RITUAL, false)), mid_row[3]);
         frame.render_widget(Paragraph::new("Component Cost: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[4]);
         frame.render_widget(Paragraph::new("Higher Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[5]);
         frame.render_widget(Paragraph::new("Concentration: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[6]);
@@ -294,6 +394,10 @@ impl Page for Search {
             /*SearchPageMode::POPUP => self.popup_key(key),*/
             SearchSelected::TITLE => self.title_key(key),
             SearchSelected::CONTENT => self.content_key(key),
+            SearchSelected::V => self.v_key(key),
+            SearchSelected::S => self.s_key(key),
+            SearchSelected::M => self.m_key(key),
+            SearchSelected::RITUAL => self.ritual_key(key),
             _ => ()
         }
     }
