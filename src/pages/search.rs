@@ -168,123 +168,40 @@ impl Search {
         }
     }
 
-    fn v_key(&mut self, key: KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.vsm.0 {
-                    Some(b) => {
-                        if *b {self.pre_search.vsm.0 = Some(false)}
-                        else {self.pre_search.vsm.0 = None}
-                    },
-                    None => {self.pre_search.vsm.0 = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::S,
-            _ => ()
-        }
-    }
-
-    fn s_key(&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.vsm.1 {
-                    Some(b) => {
-                        if *b {self.pre_search.vsm.1 = Some(false)}
-                        else {self.pre_search.vsm.1 = None}
-                    },
-                    None => {self.pre_search.vsm.1 = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::M,
-            _ => ()
-        }
-    }
-    fn m_key(&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.vsm.2 {
-                    Some(b) => {
-                        if *b {self.pre_search.vsm.2 = Some(false)}
-                        else {self.pre_search.vsm.2 = None}
-                    },
-                    None => {self.pre_search.vsm.2 = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::RITUAL,
-            _ => ()
-        }
-    }
-
-    fn ritual_key(&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.ritual {
-                    Some(b) => {
-                        if *b {self.pre_search.ritual = Some(false)}
-                        else {self.pre_search.ritual = None}
-                    },
-                    None => {self.pre_search.ritual = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::COMPONENT,
-            _ => ()
-        }
-    }
-    fn cost_key(&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.component_cost {
-                    Some(b) => {
-                        if *b {self.pre_search.component_cost = Some(false)}
-                        else {self.pre_search.component_cost = None}
-                    },
-                    None => {self.pre_search.component_cost = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::HIGHERLV,
-            _ => ()
-        }
-    }
-
-    fn higher_lv_key (&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.higher_lv {
-                    Some(b) => {
-                        if *b {self.pre_search.higher_lv = Some(false)}
-                        else {self.pre_search.higher_lv = None}
-                    },
-                    None => {self.pre_search.higher_lv = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::CONCENTRATION,
-            _ => ()
-        }
-    }
-
-    fn concentration_key (&mut self, key:KeyCode) {
-        match key {
-            KeyCode::Enter => {
-                match &self.pre_search.concentration {
-                    Some(b) => {
-                        if *b {self.pre_search.concentration = Some(false)}
-                        else {self.pre_search.concentration = None}
-                    },
-                    None => {self.pre_search.concentration = Some(true)}
-                }
-            },
-            KeyCode::Esc => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::TITLE,
-            _ => ()
-        }
-    }
 }
+
+macro_rules! impl_boolkey {
+    ($( ($fn_name: ident, $next: ident, $($field: tt)+ ) ), *) => {
+        impl Search {
+            $(fn $fn_name(&mut self, key:KeyCode) {
+                match key {
+                    KeyCode::Enter => {
+                        match &self.pre_search.$($field)+ {
+                            Some(b) => {
+                                if *b {self.pre_search.$($field)+ = Some(false)}
+                                else {self.pre_search.$($field)+ = None}
+                            },
+                            None => {self.pre_search.$($field)+ = Some(true)}
+                            }
+                        },
+                    KeyCode::Esc => {self.selected = SearchSelected::NONE},
+                    KeyCode::Tab => self.selected = SearchSelected::$next,
+                    _ => ()
+                }
+            })*
+        }
+    };
+}
+
+impl_boolkey!(
+    (v_key, S, vsm.0),
+    (s_key, M, vsm.1),
+    (m_key, RITUAL, vsm.2),
+    (ritual_key, COMPONENT, ritual),
+    (cost_key, HIGHERLV, component_cost),
+    (higher_lv_key, CONCENTRATION, higher_lv),
+    (concentration_key, TITLE, concentration)
+);
 
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
