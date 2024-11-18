@@ -12,6 +12,9 @@ pub struct PreSearch {
     pub content: String,
     pub vsm: (Option<bool>, Option<bool>, Option<bool>),
     pub ritual: Option<bool>,
+    pub component_cost: Option<bool>,
+    pub higher_lv: Option<bool>,
+    pub concentration: Option<bool>,
 }
 
 impl PreSearch {
@@ -30,6 +33,9 @@ impl PreSearch {
             content: String::new(),
             vsm: (None, None, None),
             ritual: None,
+            component_cost: None,
+            higher_lv: None,
+            concentration: None,
         }
     }
 }

@@ -230,6 +230,56 @@ impl Search {
                 }
             },
             KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::COMPONENT,
+            _ => ()
+        }
+    }
+    fn cost_key(&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.component_cost {
+                    Some(b) => {
+                        if *b {self.pre_search.component_cost = Some(false)}
+                        else {self.pre_search.component_cost = None}
+                    },
+                    None => {self.pre_search.component_cost = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::HIGHERLV,
+            _ => ()
+        }
+    }
+
+    fn higher_lv_key (&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.higher_lv {
+                    Some(b) => {
+                        if *b {self.pre_search.higher_lv = Some(false)}
+                        else {self.pre_search.higher_lv = None}
+                    },
+                    None => {self.pre_search.higher_lv = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::CONCENTRATION,
+            _ => ()
+        }
+    }
+
+    fn concentration_key (&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Enter => {
+                match &self.pre_search.concentration {
+                    Some(b) => {
+                        if *b {self.pre_search.concentration = Some(false)}
+                        else {self.pre_search.concentration = None}
+                    },
+                    None => {self.pre_search.concentration = Some(true)}
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
             KeyCode::Tab => self.selected = SearchSelected::TITLE,
             _ => ()
         }
@@ -248,53 +298,38 @@ impl Page for Search {
             _ => ""
         };
 
-        let v_content = match self.pre_search.vsm.0 {
-            Some(b) => {
-                if b {"V: [+]"}
-                else {"V: [-]"}
-            },
-            None => "V: [ ]"
-        };
+        macro_rules! toggle_content {
+            ($var: ident = $str:literal, $($field:tt)+) => {
+                 let $var = match self.pre_search.$($field)+ {
+                    Some(b) => {
+                        if b {$str.to_owned() + ": [+]"}
+                        else {$str.to_owned() + ": [-]"}
+                    },
+                    None => $str.to_owned() + ": [ ]"
+                };
+            };
+        }
+        toggle_content!(v_content = "V", vsm.0);
+        toggle_content!(s_content = "S", vsm.1);
+        toggle_content!(m_content = "M", vsm.2);
+        toggle_content!(ritual_content = "Ritual", ritual);
+        toggle_content!(component_cost = "Component Cost", component_cost);
+        toggle_content!(higher_lv = "Higher Level", higher_lv);
+        toggle_content!(concentration = "Concentration", concentration);
 
-        let s_content = match self.pre_search.vsm.1 {
-            Some(b) => {
-                if b {"S: [+]"}
-                else {"S: [-]"}
-            },
-            None => "S: [ ]"
-        };
+        macro_rules! lists {
+            ($var: ident, $type: ident) => {
+                let $var = List::new(self.get_checked(SearchSelected::$type))
+                    .block(get_style(&self.selected, SearchSelected::$type, true))
+                    .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                    .highlight_symbol(">")
+                    .repeat_highlight_symbol(true);
+            }
+        }
 
-        let m_content = match self.pre_search.vsm.2 {
-            Some(b) => {
-                if b {"M: [+]"}
-                else {"M: [-]"}
-            },
-            None => "M: [ ]"
-        };
-
-        let ritual_content = match self.pre_search.ritual {
-            Some(b) => {
-                if b {"Ritual: [+]"}
-                else {"Ritual: [-]"}
-            },
-            None => "Ritual: [ ]"
-        };
-
-        let damage_list = List::new(self.get_checked(SearchSelected::DMGTYPE))
-            .block(get_style(&self.selected, SearchSelected::DMGTYPE, true))
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .highlight_symbol(">")
-            .repeat_highlight_symbol(true);
-        let tag_list = List::new(self.get_checked(SearchSelected::TAGS))
-            .block(get_style(&self.selected, SearchSelected::TAGS, true))
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .highlight_symbol(">")
-            .repeat_highlight_symbol(true);
-        let spell_list = List::new(self.get_checked(SearchSelected::LISTS))
-            .block(get_style(&self.selected, SearchSelected::LISTS, true))
-            .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-            .highlight_symbol(">")
-            .repeat_highlight_symbol(true);
+        lists!(damage_list, DMGTYPE);
+        lists!(tag_list, TAGS);
+        lists!(spell_list, LISTS);
 
         let inner_layout = Layout::default()
             .direction(Direction::Vertical)
@@ -319,7 +354,7 @@ impl Page for Search {
                 Constraint::Percentage(6),
                 Constraint::Percentage(6),
                 Constraint::Percentage(8),
-                Constraint::Percentage(12),
+                Constraint::Percentage(14),
                 Constraint::Percentage(12),
                 Constraint::Percentage(12),
                 Constraint::Percentage(7),
@@ -351,19 +386,26 @@ impl Page for Search {
             ]).split(inner_layout[4]);
 
 
+        macro_rules! bool_render {
+            ($var: ident, $style_select: ident, $($location: tt)+) => {
+                frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::$style_select, false)), $($location)+);
+            };
+        }
+
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + title_bar).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string() + &self.pre_search.content.clone() + content_bar).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
-        frame.render_widget(Paragraph::new(v_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::V, false)), mid_row[0]);
-        frame.render_widget(Paragraph::new(s_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::S, false)), mid_row[1]);
-        frame.render_widget(Paragraph::new(m_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::M, false)), mid_row[2]);
-        frame.render_widget(Paragraph::new(ritual_content.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::RITUAL, false)), mid_row[3]);
-        frame.render_widget(Paragraph::new("Component Cost: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[4]);
-        frame.render_widget(Paragraph::new("Higher Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[5]);
-        frame.render_widget(Paragraph::new("Concentration: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[6]);
+        bool_render!(v_content, V, mid_row[0]);
+        bool_render!(s_content, S, mid_row[1]);
+        bool_render!(m_content, M, mid_row[2]);
+        bool_render!(ritual_content, RITUAL, mid_row[3]);
+        bool_render!(component_cost, COMPONENT, mid_row[4]);
+        bool_render!(higher_lv, HIGHERLV, mid_row[5]);
+        bool_render!(concentration, CONCENTRATION, mid_row[6]);
+
         frame.render_widget(Paragraph::new("Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[7]);
         frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
-        frame.render_widget(Paragraph::new("Duration: [ ] [       ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
+        frame.render_widget(Paragraph::new("Duration: [ ] [     ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
@@ -398,6 +440,9 @@ impl Page for Search {
             SearchSelected::S => self.s_key(key),
             SearchSelected::M => self.m_key(key),
             SearchSelected::RITUAL => self.ritual_key(key),
+            SearchSelected::COMPONENT => self.cost_key(key),
+            SearchSelected::HIGHERLV => self.higher_lv_key(key),
+            SearchSelected::CONCENTRATION => self.concentration_key(key),
             _ => ()
         }
     }
