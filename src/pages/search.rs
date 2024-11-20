@@ -168,6 +168,23 @@ impl Search {
         }
     }
 
+    fn lv_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char(c) => {
+                match c.to_digit(10) {
+                    Some(n) => {
+                        self.pre_search.lv = Some(n)
+                    },
+                    _ => ()
+                }
+            },
+            KeyCode::Delete | KeyCode::Backspace => self.pre_search.lv = None,
+            KeyCode::Esc | KeyCode::Enter => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => self.selected = SearchSelected::TITLE,
+            _ => ()
+        }
+    }
+
 }
 
 macro_rules! impl_boolkey {
@@ -200,7 +217,7 @@ impl_boolkey!(
     (ritual_key, COMPONENT, ritual),
     (cost_key, HIGHERLV, component_cost),
     (higher_lv_key, CONCENTRATION, higher_lv),
-    (concentration_key, TITLE, concentration)
+    (concentration_key, LEVEL, concentration)
 );
 
 impl Page for Search {
@@ -213,6 +230,16 @@ impl Page for Search {
         let content_bar = match self.selected {
             SearchSelected::CONTENT=> "|",
             _ => ""
+        let lv_content = {
+            let prefix = match self.selected {
+                SearchSelected::LEVEL => "Level [|",
+                _ => "Level ["
+            };
+            let mid = match self.pre_search.lv {
+                Some(n) => &n.to_string(),
+                _ => " "
+            };
+            prefix.to_string() + mid + "]"
         };
 
         macro_rules! toggle_content {
@@ -360,6 +387,7 @@ impl Page for Search {
             SearchSelected::COMPONENT => self.cost_key(key),
             SearchSelected::HIGHERLV => self.higher_lv_key(key),
             SearchSelected::CONCENTRATION => self.concentration_key(key),
+            SearchSelected::LEVEL => self.lv_key(key),
             _ => ()
         }
     }
