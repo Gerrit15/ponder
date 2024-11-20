@@ -330,9 +330,9 @@ impl Page for Search {
             ]).split(inner_layout[4]);
 
 
-        macro_rules! bool_render {
-            ($var: ident, $style_select: ident, $($location: tt)+) => {
-                frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::$style_select, false)), $($location)+);
+        macro_rules! widget_render {
+            ($( ($var: tt, $style_select: ident, $($location: tt)+) ), *) => {
+                $( frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::$style_select, false)), $($location)+);)*
             };
         }
 
