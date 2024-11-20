@@ -15,6 +15,7 @@ pub struct PreSearch {
     pub component_cost: Option<bool>,
     pub higher_lv: Option<bool>,
     pub concentration: Option<bool>,
+    pub lv: Option<u32>,
 }
 
 impl PreSearch {
@@ -36,6 +37,7 @@ impl PreSearch {
             component_cost: None,
             higher_lv: None,
             concentration: None,
+            lv: None
         }
     }
 }
