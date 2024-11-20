@@ -339,15 +339,17 @@ impl Page for Search {
         frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + title_bar).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
         frame.render_widget(Paragraph::new("Content: ".to_string() + &self.pre_search.content.clone() + content_bar).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
-        bool_render!(v_content, V, mid_row[0]);
-        bool_render!(s_content, S, mid_row[1]);
-        bool_render!(m_content, M, mid_row[2]);
-        bool_render!(ritual_content, RITUAL, mid_row[3]);
-        bool_render!(component_cost, COMPONENT, mid_row[4]);
-        bool_render!(higher_lv, HIGHERLV, mid_row[5]);
-        bool_render!(concentration, CONCENTRATION, mid_row[6]);
+        widget_render!(
+            (v_content, V, mid_row[0]),
+            (s_content, S, mid_row[1]),
+            (m_content, M, mid_row[2]),
+            (ritual_content, RITUAL, mid_row[3]),
+            (component_cost, COMPONENT, mid_row[4]),
+            (higher_lv, HIGHERLV, mid_row[5]),
+            (concentration, CONCENTRATION, mid_row[6]),
+            (lv_content, LEVEL, mid_row[7])
+        );
 
-        frame.render_widget(Paragraph::new("Level: [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[7]);
         frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
         frame.render_widget(Paragraph::new("Duration: [ ] [     ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
