@@ -223,13 +223,20 @@ impl_boolkey!(
 impl Page for Search {
     fn draw_page(&mut self, frame: &mut Frame, layout: Rect) {
         //let area = popup_area(layout, 60, 20);
-        let title_bar = match self.selected {
-            SearchSelected::TITLE => "|",
-            _ => ""
+        let title_content = {
+            "Level: ".to_string() + &self.pre_search.title + match self.selected {
+                SearchSelected::TITLE => "|",
+                _ => ""
+            }
         };
-        let content_bar = match self.selected {
-            SearchSelected::CONTENT=> "|",
-            _ => ""
+
+        let content_content = {
+            "Content: ".to_string() + &self.pre_search.content + match self.selected {
+                SearchSelected::CONTENT=> "|",
+                _ => ""
+            }
+        };
+
         let lv_content = {
             let prefix = match self.selected {
                 SearchSelected::LEVEL => "Level [|",
@@ -336,8 +343,8 @@ impl Page for Search {
             };
         }
 
-        frame.render_widget(Paragraph::new("Title: ".to_string() + &self.pre_search.title.clone() + title_bar).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
-        frame.render_widget(Paragraph::new("Content: ".to_string() + &self.pre_search.content.clone() + content_bar).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
+        frame.render_widget(Paragraph::new(title_content).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
+        frame.render_widget(Paragraph::new(content_content).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
         widget_render!(
             (v_content, V, mid_row[0]),
