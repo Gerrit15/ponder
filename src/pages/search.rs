@@ -212,7 +212,6 @@ impl Search {
             _ => ()
         }
     }
-
 }
 
 macro_rules! impl_boolkey {
@@ -419,6 +418,7 @@ impl Page for Search {
             (damage_content, (DAMAGE(0)), mid_row[8])
         );
 
+        frame.render_widget(Paragraph::new("Duration: [ ] [     ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
