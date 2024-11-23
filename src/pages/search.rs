@@ -180,7 +180,35 @@ impl Search {
             },
             KeyCode::Delete | KeyCode::Backspace => self.pre_search.lv = None,
             KeyCode::Esc | KeyCode::Enter => {self.selected = SearchSelected::NONE},
-            KeyCode::Tab => self.selected = SearchSelected::TITLE,
+            KeyCode::Tab => self.selected = SearchSelected::DAMAGE(1),
+            _ => ()
+        }
+    }
+
+    fn damage_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char(c) => {
+                if let Some(n) = c.to_digit(10) {
+                    if let SearchSelected::DAMAGE(i) = self.selected {
+                        self.pre_search.damage[i as usize - 1] = Some(n)
+                    }
+                }
+            },
+            KeyCode::Delete | KeyCode::Backspace => {
+                if  let SearchSelected::DAMAGE(i) = self.selected {
+                    self.pre_search.damage[i as usize - 1] = None
+                }
+            },
+            KeyCode::Esc => {self.selected = SearchSelected::NONE},
+            KeyCode::Tab => {
+                if let SearchSelected::DAMAGE(i) = self.selected {
+                    if i != 3 {
+                        self.selected = SearchSelected::DAMAGE(i + 1)
+                    } else {
+                        self.selected = SearchSelected::TITLE
+                    }
+                }
+            },
             _ => ()
         }
     }
@@ -247,6 +275,22 @@ impl Page for Search {
                 _ => " "
             };
             prefix.to_string() + mid + "]"
+        };
+
+        let damage_content = {
+            let s = "Damage: [".to_string();
+            let dmg_strs = self.pre_search.damage.iter().map(|v| 
+                match v {
+                    &Some(n) => n.clone().to_string(),
+                    _ => " ".to_string()
+                }
+            ).collect::<Vec<String>>();
+            match self.selected {
+                SearchSelected::DAMAGE(1) => s + "|" + &dmg_strs[0].clone() + "]D[" + &dmg_strs[1].clone() + "] + [" + &dmg_strs[2].clone() + "]",
+                SearchSelected::DAMAGE(2) => s + &dmg_strs[0].clone() + "]D[|" + &dmg_strs[1].clone() + "] + [" + &dmg_strs[2].clone() + "]",
+                SearchSelected::DAMAGE(3) => s + &dmg_strs[0].clone() + "]D[" + &dmg_strs[1].clone() + "] + [|" + &dmg_strs[2].clone() + "]",
+                _ => s + &dmg_strs[0].clone() + "]D[" + &dmg_strs[1].clone() + "] + [" + &dmg_strs[2].clone() + "]",
+            }
         };
 
         macro_rules! toggle_content {
@@ -397,6 +441,7 @@ impl Page for Search {
             SearchSelected::HIGHERLV => self.higher_lv_key(key),
             SearchSelected::CONCENTRATION => self.concentration_key(key),
             SearchSelected::LEVEL => self.lv_key(key),
+            SearchSelected::DAMAGE(_) => self.damage_key(key),
             _ => ()
         }
     }
