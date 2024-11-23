@@ -382,27 +382,43 @@ impl Page for Search {
 
 
         macro_rules! widget_render {
-            ($( ($var: tt, $style_select: ident, $($location: tt)+) ), *) => {
-                $( frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Center).block(get_style(&self.selected, SearchSelected::$style_select, false)), $($location)+);)*
+            ($( ($var: tt, ($($style_select: tt)+), $($location: tt)+) ), *) => {
+                $(
+                    let tempn = usize::from(SearchSelected::$($style_select)+.clone());
+
+                    let style = {
+                        let b = Block::bordered();
+                        if usize::from(self.selected.clone()) == usize::from(SearchSelected::$($style_select)+.clone()) {
+                            b.style(Style::default().add_modifier(Modifier::REVERSED))
+                        } else {
+                            b
+                        }
+                    };
+                    if tempn <= 2 && tempn != 0 {
+                        frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Left).block(style), $($location)+);
+                    } else {
+                        frame.render_widget(Paragraph::new($var.to_string()).alignment(Alignment::Center).block(style), $($location)+);
+                    }
+                )*
             };
         }
 
-        frame.render_widget(Paragraph::new(title_content).block(get_style(&self.selected, SearchSelected::TITLE, false)), top_row[0]);
-        frame.render_widget(Paragraph::new(content_content).block(get_style(&self.selected, SearchSelected::CONTENT, false)), top_row[1]);
 
         widget_render!(
-            (v_content, V, mid_row[0]),
-            (s_content, S, mid_row[1]),
-            (m_content, M, mid_row[2]),
-            (ritual_content, RITUAL, mid_row[3]),
-            (component_cost, COMPONENT, mid_row[4]),
-            (higher_lv, HIGHERLV, mid_row[5]),
-            (concentration, CONCENTRATION, mid_row[6]),
-            (lv_content, LEVEL, mid_row[7])
+            (title_content, (TITLE), top_row[0]),
+            (content_content, (CONTENT), top_row[1]),
+            (v_content, (V), mid_row[0]),
+            (s_content, (S), mid_row[1]),
+            (m_content, (M), mid_row[2]),
+            (ritual_content, (RITUAL), mid_row[3]),
+            (component_cost, (COMPONENT), mid_row[4]),
+            (higher_lv, (HIGHERLV), mid_row[5]),
+            (concentration, (CONCENTRATION), mid_row[6]),
+            (lv_content, (LEVEL), mid_row[7]),
+            //the (0) is ok here because any value of DAMAGE(*) turns into the same usize
+            (damage_content, (DAMAGE(0)), mid_row[8])
         );
 
-        frame.render_widget(Paragraph::new("Damage: [ ]D[ ] + [ ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[8]);
-        frame.render_widget(Paragraph::new("Duration: [ ] [     ] ".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
