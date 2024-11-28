@@ -1,5 +1,3 @@
-use ratatui::style::Style;
-
 /*#[derive(Clone)]
 pub enum SearchSelected {
     NONE,
@@ -14,7 +12,7 @@ pub enum SearchSelected {
     TAGS,
 }*/
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum SearchSelected {
     NONE,
     TITLE,
@@ -28,7 +26,7 @@ pub enum SearchSelected {
     CONCENTRATION,
     LEVEL,
     DAMAGE(u32),
-    DURATION,
+    DURATION(u32),
     CASTINGTIME,
     RANGE,
     PROC,
@@ -56,7 +54,7 @@ impl SearchSelected {
             9 => Some(CONCENTRATION),
             10 => Some(LEVEL),
             11 => Some(DAMAGE(0)),
-            12 => Some(DURATION),
+            12 => Some(DURATION(0)),
             13 => Some(CASTINGTIME),
             14 => Some(RANGE),
             15 => Some(PROC),
@@ -87,7 +85,7 @@ impl From<SearchSelected> for usize {
             CONCENTRATION=> 9,
             LEVEL => 10,
             DAMAGE(_) => 11,
-            DURATION => 12,
+            DURATION(_) => 12,
             CASTINGTIME => 13,
             RANGE => 14,
             PROC => 15,
@@ -117,7 +115,7 @@ impl From<SearchSelected> for String {
             CONCENTRATION=> "Concentration",
             LEVEL => "Level",
             DAMAGE(_) => "Damage",
-            DURATION => "Duration",
+            DURATION(_) => "Duration",
             CASTINGTIME => "Casting Time",
             RANGE => "Range",
             PROC => "Proc",

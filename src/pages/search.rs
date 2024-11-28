@@ -9,6 +9,7 @@ pub struct Search {
     //states: Vec<ListState>,
     pre_search: PreSearch,
     selected: SearchSelected,
+    duration_pop: (bool, ListState),
 }
 
 impl Search {
@@ -20,6 +21,7 @@ impl Search {
             damage_type_selector: ListState::default(),
             selected: SearchSelected::NONE,
             pre_search: PreSearch::new(),
+            duration_pop: (false, ListState::default()),
         }
     }
     fn get_checked(&self, selected: SearchSelected) -> Vec<String> {
@@ -205,8 +207,67 @@ impl Search {
                     if i != 3 {
                         self.selected = SearchSelected::DAMAGE(i + 1)
                     } else {
-                        self.selected = SearchSelected::TITLE
+                        self.selected = SearchSelected::DURATION(0)
                     }
+                }
+            },
+            _ => ()
+        }
+    }
+
+    fn duration_key(&mut self, key:KeyCode) {
+        match key {
+            KeyCode::Char(c) => {
+                //we don't let it go above 3 digits
+                if let (SearchSelected::DURATION(0), Some(n)) = (self.selected.clone(), c.to_digit(10)) {
+                    let n_val = self.pre_search.duration.0.unwrap_or(0)*10 + n;
+                    let n_val = n_val - (n_val / 100)*100;
+                    self.pre_search.duration.0 = Some(n_val);
+                } else if c == 'j' {
+                    self.duration_pop.1.select_next();
+                } else if c == 'k' {
+                    self.duration_pop.1.select_previous();
+                }
+            },
+            KeyCode::Delete | KeyCode::Backspace => {
+                self.pre_search.duration.0 = None;
+                self.pre_search.duration.1 = None;
+            },
+            KeyCode::Esc => {
+                match self.selected {
+                    SearchSelected::DURATION(1) => {
+                        if self.duration_pop.0 {
+                            self.duration_pop.0 = false;
+                        } else {
+                            self.selected = SearchSelected::NONE;
+                        }
+                    },
+                    _ => self.selected = SearchSelected::NONE
+                };
+            },
+            KeyCode::Enter => {
+                if let SearchSelected::DURATION(1) = self.selected {
+                    if self.duration_pop.0 {
+                        let selected = self.duration_pop.1.selected().unwrap_or(0);
+                        //self.pre_search.duration.1 = Some(String::from(SearchSelected::from_usize(selected).unwrap()));
+                        self.pre_search.duration.1 = Some(self.spell_enums.casting_units[selected].clone());
+                        if self.pre_search.duration.1.clone().unwrap() == "NONE" {
+                            self.pre_search.duration.1 = None;
+                        }
+                        self.duration_pop.0 = false;
+                    } else {
+                        self.duration_pop.0 = true;
+                    }
+                }
+            },
+            KeyCode::Tab => {
+                match self.selected {
+                    SearchSelected::DURATION(0) => self.selected = SearchSelected::DURATION(1),
+                    SearchSelected::DURATION(1) => {
+                        self.duration_pop.0 = false;
+                        self.selected = SearchSelected::TITLE;
+                    },
+                    _ => ()
                 }
             },
             _ => ()
@@ -289,6 +350,20 @@ impl Page for Search {
                 SearchSelected::DAMAGE(2) => s + &dmg_strs[0].clone() + "]D[|" + &dmg_strs[1].clone() + "] + [" + &dmg_strs[2].clone() + "]",
                 SearchSelected::DAMAGE(3) => s + &dmg_strs[0].clone() + "]D[" + &dmg_strs[1].clone() + "] + [|" + &dmg_strs[2].clone() + "]",
                 _ => s + &dmg_strs[0].clone() + "]D[" + &dmg_strs[1].clone() + "] + [" + &dmg_strs[2].clone() + "]",
+            }
+        };
+
+        let duration_content = {
+            let s = "Duration [".to_string();
+            let n = match self.pre_search.duration.0 {
+                Some(num) => num.to_string(),
+                _ => " ".to_owned()
+            };
+            let len = self.pre_search.duration.1.clone().unwrap_or("    ".to_string());
+            match self.selected {
+                SearchSelected::DURATION(0) => {s + "|" + &n + "] [" + &len + "]"}
+                SearchSelected::DURATION(1) => {s + &n + "] [|" + &len + "]"}
+                _ => {s + &n + " ] [" + &len + "]"}
             }
         };
 
@@ -415,10 +490,11 @@ impl Page for Search {
             (concentration, (CONCENTRATION), mid_row[6]),
             (lv_content, (LEVEL), mid_row[7]),
             //the (0) is ok here because any value of DAMAGE(*) turns into the same usize
-            (damage_content, (DAMAGE(0)), mid_row[8])
+            (damage_content, (DAMAGE(0)), mid_row[8]),
+            (duration_content, (DURATION(0)), mid_row[9])
         );
 
-        frame.render_widget(Paragraph::new("Duration: [ ] [     ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
+        //frame.render_widget(Paragraph::new("Duration: [ ] [     ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
 
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
@@ -431,6 +507,17 @@ impl Page for Search {
 
         frame.render_widget(Paragraph::new("SEARCH").centered().block(Block::bordered()), bottom_row[0]);
         frame.render_widget(Paragraph::new("CLEAR").centered().block(Block::bordered()), bottom_row[1]);
+
+        if self.duration_pop.0 {
+            let area = popup_area(layout, 60, 20);
+            let list = List::new(self.spell_enums.casting_units.clone())
+                .block(Block::bordered().title(String::from("Duration units")))
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">")
+                .repeat_highlight_symbol(true);
+            frame.render_widget(Clear, area);
+            frame.render_stateful_widget(list, area, &mut self.duration_pop.1);
+        }
 
         /*if self.mode == SearchPageMode::POPUP{
             let checked_tabs = self.get_checked();
@@ -458,6 +545,7 @@ impl Page for Search {
             SearchSelected::CONCENTRATION => self.concentration_key(key),
             SearchSelected::LEVEL => self.lv_key(key),
             SearchSelected::DAMAGE(_) => self.damage_key(key),
+            SearchSelected::DURATION(_) => self.duration_key(key),
             _ => ()
         }
     }
