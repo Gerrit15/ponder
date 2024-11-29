@@ -4,9 +4,7 @@ use crate::*;
 
 pub struct Search {
     spell_enums: SpellEnums,
-    //popup: bool,
     damage_type_selector: ListState,
-    //states: Vec<ListState>,
     pre_search: PreSearch,
     selected: SearchSelected,
     duration_pop: (bool, ListState),
@@ -16,8 +14,6 @@ impl Search {
     pub fn new(spell_enums: SpellEnums) -> Search {
         Search {
             spell_enums,
-            //popup: false,
-            //states: vec![ListState::default(); 9],
             damage_type_selector: ListState::default(),
             selected: SearchSelected::NONE,
             pre_search: PreSearch::new(),
@@ -528,17 +524,6 @@ impl Page for Search {
             frame.render_widget(Clear, area);
             frame.render_stateful_widget(list, area, &mut self.duration_pop.1);
         }
-
-        /*if self.mode == SearchPageMode::POPUP{
-            let checked_tabs = self.get_checked();
-            let list = List::new(checked_tabs)
-                .block(Block::bordered().title(String::from(self.selected.clone())))
-                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
-                .highlight_symbol(">")
-                .repeat_highlight_symbol(true);
-            frame.render_widget(Clear, area);
-            frame.render_stateful_widget(list, area, &mut self.states[self.selected.clone() as usize]);
-        }*/
     }
     fn key(&mut self, key: KeyCode) {
         match self.selected {
