@@ -273,6 +273,18 @@ impl Search {
             _ => ()
         }
     }
+
+    fn castingtime_key(&mut self, key: KeyCode) {
+        match key {
+            KeyCode::Char(c) => {},
+            KeyCode::Delete | KeyCode::Backspace => {},
+            KeyCode::Esc => {},
+            KeyCode::Tab => {
+                self.selected = SearchSelected::TITLE
+            },
+            _ => ()
+        }
+    }
 }
 
 macro_rules! impl_boolkey {
