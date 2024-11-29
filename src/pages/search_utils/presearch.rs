@@ -18,6 +18,7 @@ pub struct PreSearch {
     pub lv: Option<u32>,
     pub damage: [Option<u32>; 3],
     pub duration: (Option<u32>, Option<String>),
+    pub casting: (Option<u32>, Option<String>),
 }
 
 impl PreSearch {
@@ -42,6 +43,7 @@ impl PreSearch {
             lv: None,
             damage: [None, None, None],
             duration: (None, None),
+            casting: (None, None),
         }
     }
 }

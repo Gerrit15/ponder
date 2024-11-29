@@ -8,6 +8,7 @@ pub struct Search {
     pre_search: PreSearch,
     selected: SearchSelected,
     duration_pop: (bool, ListState),
+    casttime_pop: (bool, ListState),
 }
 
 impl Search {
@@ -18,6 +19,7 @@ impl Search {
             selected: SearchSelected::NONE,
             pre_search: PreSearch::new(),
             duration_pop: (false, ListState::default()),
+            casttime_pop: (false, ListState::default()),
         }
     }
     fn get_checked(&self, selected: SearchSelected) -> Vec<String> {
@@ -260,7 +262,7 @@ impl Search {
                     SearchSelected::DURATION(0) => self.selected = SearchSelected::DURATION(1),
                     SearchSelected::DURATION(1) => {
                         self.duration_pop.0 = false;
-                        self.selected = SearchSelected::TITLE;
+                        self.selected = SearchSelected::CASTINGTIME(0);
                     },
                     _ => ()
                 }
@@ -271,11 +273,56 @@ impl Search {
 
     fn castingtime_key(&mut self, key: KeyCode) {
         match key {
-            KeyCode::Char(c) => {},
-            KeyCode::Delete | KeyCode::Backspace => {},
-            KeyCode::Esc => {},
+            KeyCode::Char(c) => {
+                if let (SearchSelected::CASTINGTIME(0), Some(n)) = (self.selected.clone(), c.to_digit(10)) {
+                    let n_val = self.pre_search.casting.0.unwrap_or(0)*10 + n;
+                    let n_val = n_val - (n_val / 100)*100;
+                    self.pre_search.casting.0 = Some(n_val);
+                } else if c == 'j' {
+                    self.casttime_pop.1.select_next();
+                } else if c == 'k' {
+                    self.casttime_pop.1.select_previous();
+                }
+            },
+            KeyCode::Enter => {
+                if let SearchSelected::CASTINGTIME(1) = self.selected {
+                    if self.casttime_pop.0 {
+                        let selected = self.casttime_pop.1.selected().unwrap_or(0);
+                        self.pre_search.casting.1 = Some(self.spell_enums.casting_units[selected].clone());
+                        if self.pre_search.casting.1.clone().unwrap() == "NONE" {
+                            self.pre_search.casting.1 = None;
+                        }
+                        self.casttime_pop.0 = false;
+                    } else {
+                        self.casttime_pop.0 = true;
+                    }
+                }
+            },
+            KeyCode::Delete | KeyCode::Backspace => {
+                self.pre_search.casting.0 = None;
+                self.pre_search.casting.1 = None;
+            },
+            KeyCode::Esc => {
+                match self.selected {
+                    SearchSelected::CASTINGTIME(1) => {
+                        if self.casttime_pop.0 {
+                            self.casttime_pop.0 = false;
+                        } else {
+                            self.selected = SearchSelected::NONE;
+                        }
+                    },
+                    _ => self.selected = SearchSelected::NONE
+                };
+            },
             KeyCode::Tab => {
-                self.selected = SearchSelected::TITLE
+                match self.selected {
+                    SearchSelected::CASTINGTIME(0) => self.selected = SearchSelected::CASTINGTIME(1),
+                    SearchSelected::CASTINGTIME(1) => {
+                        self.casttime_pop.0 = false;
+                        self.selected = SearchSelected::TITLE;
+                    },
+                    _ => ()
+                }
             },
             _ => ()
         }
@@ -370,6 +417,20 @@ impl Page for Search {
             match self.selected {
                 SearchSelected::DURATION(0) => {s + "|" + &n + "] [" + &len + "]"}
                 SearchSelected::DURATION(1) => {s + &n + "] [|" + &len + "]"}
+                _ => {s + &n + " ] [" + &len + "]"}
+            }
+        };
+
+        let casttime_content = {
+            let s = "Casting time [".to_string();
+            let n = match self.pre_search.casting.0 {
+                Some(num) => num.to_string(),
+                _ => " ".to_owned()
+            };
+            let len = self.pre_search.casting.1.clone().unwrap_or("    ".to_string());
+            match self.selected {
+                SearchSelected::CASTINGTIME(0) => {s + "|" + &n + "] [" + &len + "]"}
+                SearchSelected::CASTINGTIME(1) => {s + &n + "] [|" + &len + "]"}
                 _ => {s + &n + " ] [" + &len + "]"}
             }
         };
@@ -498,10 +559,10 @@ impl Page for Search {
             (lv_content, (LEVEL), mid_row[7]),
             //the (0) is ok here because any value of DAMAGE(*) turns into the same usize
             (damage_content, (DAMAGE(0)), mid_row[8]),
-            (duration_content, (DURATION(0)), mid_row[9])
+            (duration_content, (DURATION(0)), mid_row[9]),
+            (casttime_content, (CASTINGTIME(0)), mid_low_row[1])
         );
 
-        frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
         frame.render_widget(Paragraph::new("Proc: [       ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[3]);
         frame.render_widget(Paragraph::new("Source: [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[4]);
@@ -522,6 +583,16 @@ impl Page for Search {
                 .repeat_highlight_symbol(true);
             frame.render_widget(Clear, area);
             frame.render_stateful_widget(list, area, &mut self.duration_pop.1);
+        } else if self.casttime_pop.0 {
+            let area = popup_area(layout, 60, 20);
+            let list = List::new(self.spell_enums.casting_units.clone())
+                .block(Block::bordered().title(String::from("Casting time units")))
+                .highlight_style(Style::new().add_modifier(Modifier::REVERSED))
+                .highlight_symbol(">")
+                .repeat_highlight_symbol(true);
+            frame.render_widget(Clear, area);
+            frame.render_stateful_widget(list, area, &mut self.casttime_pop.1);
+
         }
     }
     fn key(&mut self, key: KeyCode) {
@@ -539,6 +610,7 @@ impl Page for Search {
             SearchSelected::LEVEL => self.lv_key(key),
             SearchSelected::DAMAGE(_) => self.damage_key(key),
             SearchSelected::DURATION(_) => self.duration_key(key),
+            SearchSelected::CASTINGTIME(_) => self.castingtime_key(key),
             _ => ()
         }
     }
