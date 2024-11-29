@@ -7,5 +7,4 @@ pub use page::Page;
 pub use main_list::MainList;
 pub use search::Search;
 pub use search_utils::presearch::PreSearch;
-pub use search_utils::searchpagemode::SearchPageMode;
 pub use search_utils::searchselected::SearchSelected;

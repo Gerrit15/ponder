@@ -15,7 +15,7 @@ use database::Database;
 use spellenums::SpellEnums;
 use spell::Spell;
 use app::App;
-use pages::{Page, MainList, Search, PreSearch, SearchPageMode, SearchSelected};
+use pages::{Page, MainList, Search, PreSearch, SearchSelected};
 use tab::Tab;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{

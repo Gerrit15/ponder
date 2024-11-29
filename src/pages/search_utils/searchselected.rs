@@ -1,17 +1,3 @@
-/*#[derive(Clone)]
-pub enum SearchSelected {
-    NONE,
-    SOURCES,
-    SCHOOL,
-    CASTINGUNITS,
-    SHAPES,
-    LISTS,
-    PROCEFF,
-    PROCSAVE,
-    DMGTYPE,
-    TAGS,
-}*/
-
 #[derive(Clone, PartialEq)]
 pub enum SearchSelected {
     NONE,

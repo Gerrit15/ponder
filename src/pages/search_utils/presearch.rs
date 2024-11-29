@@ -1,7 +1,7 @@
 pub struct PreSearch {
     pub sources: (Vec<String>, Vec<String>),
     pub school: (Vec<String>, Vec<String>),
-    pub casting_units: (Vec<String>, Vec<String>),
+    //pub casting_units: (Vec<String>, Vec<String>),
     pub shapes: (Vec<String>, Vec<String>),
     pub lists: (Vec<String>, Vec<String>),
     pub proc_eff: (Vec<String>, Vec<String>),
@@ -25,7 +25,7 @@ impl PreSearch {
         PreSearch { 
             sources: (vec![], vec![]), 
             school: (vec![], vec![]), 
-            casting_units: (vec![], vec![]), 
+            //casting_units: (vec![], vec![]), 
             shapes: (vec![], vec![]), 
             lists: (vec![], vec![]), 
             proc_eff: (vec![], vec![]), 
