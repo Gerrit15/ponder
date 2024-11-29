@@ -531,7 +531,6 @@ impl Page for Search {
     fn key(&mut self, key: KeyCode) {
         match self.selected {
             SearchSelected::NONE => self.none_key(key),
-            /*SearchPageMode::POPUP => self.popup_key(key),*/
             SearchSelected::TITLE => self.title_key(key),
             SearchSelected::CONTENT => self.content_key(key),
             SearchSelected::V => self.v_key(key),
