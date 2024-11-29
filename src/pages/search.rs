@@ -494,8 +494,6 @@ impl Page for Search {
             (duration_content, (DURATION(0)), mid_row[9])
         );
 
-        //frame.render_widget(Paragraph::new("Duration: [ ] [     ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_row[9]);
-
         frame.render_widget(Paragraph::new("Casting Time: [       ] [ ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[1]);
         frame.render_widget(Paragraph::new("Range: [ ] [ ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[2]);
         frame.render_widget(Paragraph::new("Proc: [       ] [       ]".to_string()).alignment(Alignment::Center).block(Block::bordered()), mid_low_row[3]);
