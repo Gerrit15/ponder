@@ -245,7 +245,6 @@ impl Search {
                 if let SearchSelected::DURATION(1) = self.selected {
                     if self.duration_pop.0 {
                         let selected = self.duration_pop.1.selected().unwrap_or(0);
-                        //self.pre_search.duration.1 = Some(String::from(SearchSelected::from_usize(selected).unwrap()));
                         self.pre_search.duration.1 = Some(self.spell_enums.casting_units[selected].clone());
                         if self.pre_search.duration.1.clone().unwrap() == "NONE" {
                             self.pre_search.duration.1 = None;
